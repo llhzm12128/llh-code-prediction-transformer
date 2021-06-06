@@ -7,7 +7,6 @@
 
 import torch
 from dataset import BaseDataset, BaseSetup, BaseVocab
-from dataset.dataset import BaseDataset, BaseSetup, BaseVocab
 
 
 class Setup(BaseSetup):
