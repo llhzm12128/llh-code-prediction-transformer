@@ -1,0 +1,6 @@
+data/*
+output/*
+outputs/*
+tokenizer/*
+.ipynb_checkpoints/*
+__pycache__/*
