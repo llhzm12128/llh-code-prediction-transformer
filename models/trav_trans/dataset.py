@@ -6,11 +6,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-<<<<<<< HEAD
 from dataset import BaseDataset, BaseSetup, BaseVocab
-=======
 from dataset.dataset import BaseDataset, BaseSetup, BaseVocab
->>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
 
 
 class Setup(BaseSetup):
