@@ -72,12 +72,7 @@ def get_dfs(ast, only_leaf=False):
                 dp.append(node["type"])
     return dp
 
-
-<<<<<<< HEAD
-def custom_separate_dps(ast, max_len):
-=======
 def separate_dps(ast, max_len):
->>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
     """
     Handles training / evaluation on long ASTs by splitting
     them into smaller ASTs of length max_len, with a sliding
@@ -109,7 +104,6 @@ def separate_dps(ast, max_len):
     aug_asts.append([ast[-max_len:], idx])
     return aug_asts
 
-<<<<<<< HEAD
 def custom_separate_dps(ast, max_len):
     asts = []
     i = max_len
@@ -121,9 +115,6 @@ def custom_separate_dps(ast, max_len):
         i += max_len
     asts.append([ast[i:], True])
     return asts
-
-=======
->>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
 
 def get_ancestors(ast):
     ancestors = {0: []}
