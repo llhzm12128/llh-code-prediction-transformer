@@ -80,7 +80,6 @@ For neural network models, we need to set a maximum number of nodes in the tree 
 
 # License
 Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., FAIR) licensed, as found in the LICENSE file.
-<<<<<<< HEAD
 
 # Extension
 
@@ -90,5 +89,3 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
 4. generate_raw_txt (Remove whitespace, TXT, only includes node values) -> for tokenizer
 5. tokenizer (train tokenizer on raw training data new_ast_raw.txt)
 6. convert (Tokenize and add special token to new trees) (necessary?) (maybe just add special token instead of tokenizing, which will be done later on)
-=======
->>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
