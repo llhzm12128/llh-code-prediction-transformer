@@ -10,12 +10,7 @@ import json
 import logging
 import os
 
-<<<<<<< HEAD
 from utils import file_tqdm, get_dfs, custom_separate_dps
-=======
-from utils import file_tqdm, get_dfs, separate_dps
->>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
-
 
 logging.basicConfig(level=logging.INFO)
 
