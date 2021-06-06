@@ -10,7 +10,11 @@ import json
 import logging
 import os
 
+<<<<<<< HEAD
 from utils import file_tqdm, get_dfs, custom_separate_dps
+=======
+from utils import file_tqdm, get_dfs, separate_dps
+>>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
 
 
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +39,11 @@ def main():
     with open(args.ast_fp, "r") as f, open(args.out_fp, "w") as fout:
         for line in file_tqdm(f):
             dp = json.loads(line.strip())
+<<<<<<< HEAD
             asts = custom_separate_dps(dp, args.n_ctx)
+=======
+            asts = separate_dps(dp, args.n_ctx)
+>>>>>>> 6ce3df69ddb89cb440038d4bface5ec3d394c440
             for ast, extended in asts:
                 if len(ast) > 1:
                     json.dump([get_dfs(ast), extended], fp=fout)
