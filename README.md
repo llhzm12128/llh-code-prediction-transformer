@@ -80,15 +80,24 @@ For neural network models, we need to set a maximum number of nodes in the tree 
 
 # License
 Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., FAIR) licensed, as found in the LICENSE file.
-<<<<<<< HEAD
-=======
 
 # Extension
 
+## Vanilla
+
+1. generate_new_trees (nodes only have type/value) `python generate_new_trees.py -i PY150 -o NEW_TREES.json`
+2. generate_data (Splitting and Preorder Traversal) `python models/trav_trans/generate_data.py -a NEW_TREES.json -o DPS.TXT`
+3. generate_vocab (generate vocab files) `python generate_vocab.py -i NEW_TREES.json -o VOCAB.pkl -t ast`
+4. generate_ast_ids `python models/trav_trans/generate_ast_ids.py -a NEW_TREES.json -o IDS.txt leaf`
+4. Create new trav_trans/dataset.Setup object --> Generates `train_converted.txt`
+5. Use torch.utils.data.DataLoader to pull batches from Dataset, using the dataset.collate function `dataloder = torch.utils.data.DataLoader(dataset, batch_size=X, collate_fn=lambda b: dataset.collate(b, setup.vocab.pad_idx))`
+6. Iterate through batches and feed to model?
+
+## HuggingFace
+
 1. generate_new_trees (nodes only have type/value)
-2. generate_data (Preorder traversal and splits)
+2. generate_data (Splitting and Preorder Traversal)
 3. generate_raw_json (Remove whitespace, JSON, includes ext) -> for dataset
 4. generate_raw_txt (Remove whitespace, TXT, only includes node values) -> for tokenizer
 5. tokenizer (train tokenizer on raw training data new_ast_raw.txt)
 6. convert (Tokenize and add special token to new trees) (necessary?) (maybe just add special token instead of tokenizing, which will be done later on)
->>>>>>> cab23f7be7c46245505337acdab5669464cb417f
