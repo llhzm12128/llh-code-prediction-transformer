@@ -72,7 +72,6 @@ def get_dfs(ast, only_leaf=False):
                 dp.append(node["type"])
     return dp
 
-
 def separate_dps(ast, max_len):
     """
     Handles training / evaluation on long ASTs by splitting
