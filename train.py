@@ -1,33 +1,46 @@
+import argparse
 from trainer import Trainer, TrainingArgs
-import model
+from model import TransformerModel
 import models.trav_trans.dataset
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 
-setup = models.trav_trans.dataset.Setup("tmp", "tmp/dps.txt", "tmp/ids.txt")
+def main():
+    parser = argparse.ArgumentParser(description="Train GPT2 Model")
+    parser.add_argument("--batch_size", default=4, help="Specify batch size")
+    parser.add_argument("--num_epoch", default=3, help="Specify number of epochs")
+    parser.add_argument("--learning_rate", default=5e-5, help="Specify AdamW learning rate")
 
-model = model.TransformerModel(
-    len(setup.vocab.idx2vocab),
-    CrossEntropyLoss(ignore_index=setup.vocab.pad_idx),
-    6,
-    300,
-    1000,
-    6,
-    1e-05
-)
+    args = parser.parse_args()
 
-training_args = TrainingArgs(
-    batch_size = 2,
-    num_epoch = 1,
-    output_dir = "output",
-    optimizer = AdamW(model.parameters(), lr=5e-5),
-    save_model_on_epoch = True
-)
+    setup = models.trav_trans.dataset.Setup("output", "output/dps.txt", "output/ids.txt")
 
-trainer = Trainer(
-    model,
-    setup,
-    training_args
-)
+    model = TransformerModel(
+        len(setup.vocab.idx2vocab),
+        CrossEntropyLoss(ignore_index=setup.vocab.pad_idx),
+        6,
+        300,
+        1000,
+        6,
+        1e-05
+    )
 
-trainer.train()
+    training_args = TrainingArgs(
+        batch_size = args.batch_size,
+        num_epoch = args.num_epoch,
+        output_dir = "output",
+        optimizer = AdamW(model.parameters(), lr=args.learning_rate),
+        save_model_on_epoch = True
+    )
+
+    trainer = Trainer(
+        model,
+        setup,
+        training_args
+    )
+
+    trainer.train()
+
+
+if __name__ == "__main__":
+    main()
