@@ -35,6 +35,7 @@ import math
 
 import torch
 import torch.nn as nn
+from torch.nn.modules.loss import CrossEntropyLoss
 
 
 def gelu(x):
@@ -275,3 +276,16 @@ class TransformerModel(nn.Module):
         # Only apply loss function on previously collected ids
         loss = self.loss_fn(y_pred.view(-1, y_pred.size(-1))[ids], y.view(-1)[ids])
         return loss
+
+def from_file(file_path, vocab):
+    model = TransformerModel(
+        len(vocab.idx2vocab),
+        CrossEntropyLoss(ignore_index=vocab.pad_idx),
+        6,
+        300,
+        1000,
+        6,
+        1e-5
+    )
+    model.load_state_dict(torch.load(file_path))
+    return model
