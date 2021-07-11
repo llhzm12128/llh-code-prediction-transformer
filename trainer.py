@@ -54,7 +54,7 @@ class Trainer(object):
                 if batch_counter % 100 == 0:
                     losses.append([epoch, i, loss.item()])
                 if batch_counter % 1000 == 0:
-                    print("Epoch {}, It. {}/{}, Loss {}".format(epoch, i, self.dataset.__len__(), loss))
+                    print("Epoch {}, It. {}/{}, Loss {}".format(epoch, i, self.dataset.__len__() / self.batch_size, loss))
                     with open(os.path.join(self.output_dir, "losses.pickle"), "wb") as fout:
                         pickle.dump(losses, fout)
                 batch_counter += 1
