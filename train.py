@@ -7,9 +7,9 @@ from torch.optim import AdamW
 
 def main():
     parser = argparse.ArgumentParser(description="Train GPT2 Model")
-    parser.add_argument("--batch_size", default=4, help="Specify batch size")
-    parser.add_argument("--num_epoch", default=3, help="Specify number of epochs")
-    parser.add_argument("--learning_rate", default=5e-5, help="Specify AdamW learning rate")
+    parser.add_argument("--batch_size", type=int, default=4, help="Specify batch size")
+    parser.add_argument("--num_epoch", type=int, default=3, help="Specify number of epochs")
+    parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
 
     args = parser.parse_args()
 
