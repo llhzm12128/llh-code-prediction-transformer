@@ -1,7 +1,9 @@
 import argparse
 import model
 import torch
+import pickle
 from tqdm import tqdm
+import numpy as np
 from models.trav_trans import dataset
 
 def generate_test(model, context, device, depth=2, top_k=10):
@@ -14,9 +16,9 @@ def generate_test(model, context, device, depth=2, top_k=10):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
-    parser.add_argument("--model", help="Specify the model file")
-    parser.add_argument("--dps", help="Specify the data file (dps) on which the model should be tested on")
-    parser.add_argument("--ids", help="Specify the data file (ids) on which the model should be tested on")
+    parser.add_argument("--model", default="output/model-8.pkl", help="Specify the model file")
+    parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
+    parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
     parser.add_argument("--vocab", help="Specify the vocab file")
     parser.add_argument("--batch_size", default=1, type=int, help="Specify the batch size")
 
@@ -35,43 +37,80 @@ def main():
 
     eval(m, dataloader)
 
-def eval(model, dataloader):
-    print("Evaluating {} batches".format(len(dataloader)))
-    reciprocal_rank = {
-        "all_leaf_tokens": [],
-        "attribute_access": [],
-        "numeric_constant": [],
-        "variable_name": [],
-        "function_parameter_name": []
-    }
+def mean_reciprocal_rank(y_labels, y_pred):
+    mrr = 0
+    for i, e in enumerate(y_labels):
+        score = 0
+        for j, f in enumerate(y_pred[i]):
+            if e == f:
+                score = 1 / (j + 1)
+                break
+        mrr += score
 
+    return mrr / len(y_labels)
+
+def eval(model, dataloader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     model.eval()
+    mrr = []
+    print("Evaluating {} batches".format(len(dataloader)))
     for i, batch in tqdm(enumerate(dataloader)):
-        if i % 100 == 0:
-            print("Batch {}".format(i))
-        x = batch["input_seq"][0]
-        y = batch["target_seq"][0]
-        ids = batch["ids"]["leaf_ids"]
+        with torch.no_grad():
+            x = batch["input_seq"][0]
+            y = batch["target_seq"][0]
+            leaf_ids = [b for b in batch["ids"]["leaf_ids"] if b >= 0]
+            prev_leaf_ids = [l - 1 for l in leaf_ids if l > 0]
+            x = x.to(device)
+            output = model(x, None)
 
-        for id in ids:
-            if id > 0:
-                y_type = x[id].item()
-                y_value = y[id].item()
+            y_type_pred = torch.topk(output[prev_leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for each leaf
+            y_type_labels = y[prev_leaf_ids].cpu().numpy()
 
-                with torch.no_grad():
-                    y_type_pred = generate_test(model, [i.item() for i in x[range(id)]], device)
-                    y_value_pred = generate_test(model, [i.item() for i in x[range(id + 1)]], device)
+            y_value_pred = torch.topk(output[leaf_ids], 10)[1].cpu().numpy()
+            y_value_labels = y[leaf_ids].cpu().numpy()
 
-                    type_rank = 0
-                    value_rank = 0
+            type_mrr = mean_reciprocal_rank(y_type_labels, y_type_pred)
+            value_mrr = mean_reciprocal_rank(y_value_labels, y_value_pred)
+            combined_mrr = (type_mrr + value_mrr) / 2
+            
+            mrr.append(combined_mrr)
 
-                    if y_type in y_type_pred[1]:
-                        type_rank = 1 / ((y_type_pred[1] == y_type).nonzero(as_tuple=True)[0].item() + 1)
-                    if y_value in y_value_pred[1]:
-                        value_rank = 1 / ((y_value_pred[1] == y_value).nonzero(as_tuple=True)[0].item() + 1)
-                    reciprocal_rank["all_leaf_tokens"].append((type_rank + value_rank) / 2)
+    with open("mrr.pkl", "wb") as fout:
+        pickle.dump(mrr, fout)
+
+
+    # for i, batch in tqdm(enumerate(dataloader)):
+    #     if i % 100 == 0:
+    #         print("Batch {}".format(i))
+    #     x = batch["input_seq"][0]
+    #     y = batch["target_seq"][0]
+    #     ids = batch["ids"]["leaf_ids"]
+
+    #     for id in ids:
+    #         if id > 0:
+    #             y_type = x[id].item()
+    #             y_value = y[id].item()
+
+    #             with torch.no_grad():
+    #                 y_type_pred = generate_test(model, [i.item() for i in x[range(id)]], device)
+    #                 y_value_pred = generate_test(model, [i.item() for i in x[range(id + 1)]], device)
+
+    #                 type_rank = 0
+    #                 value_rank = 0
+
+    #                 if y_type in y_type_pred[1]:
+    #                     type_rank = 1 / ((y_type_pred[1] == y_type).nonzero(as_tuple=True)[0].item() + 1)
+    #                 if y_value in y_value_pred[1]:
+    #                     value_rank = 1 / ((y_value_pred[1] == y_value).nonzero(as_tuple=True)[0].item() + 1)
+    #                 reciprocal_rank["all_leaf_tokens"].append((type_rank + value_rank) / 2)
 
 if __name__ == "__main__":
     main()
+
+# Evaluation: 
+
+# - Create DataLoader for test files
+# - Iterate through all batches and calculate predictions
+# - Collect predictions in list
+# - depending on leaf ids, request MRR
