@@ -70,6 +70,32 @@ def get_type_ids(ast):
     return ids
 
 
+def external(file_path, suffix, n_ctx):
+    outfile = "output/{}_ids.txt".format(suffix)
+
+    if os.path.exists(outfile):
+        os.remove(outfile)
+    logging.info("Type of id to get: {}".format("leaf"))
+
+    logging.info("Loading dps from: {}".format(file_path))
+    with open(file_path, "r") as f, open(outfile, "w") as fout:
+        for line in file_tqdm(f):
+            dp = json.loads(line.strip())
+            asts = separate_dps(dp, n_ctx)
+            for ast, _ in asts:
+                ids = {}
+                if len(ast) > 1:
+                    if "leaf" in {"leaf", "all"}:
+                        ids.update(get_leaf_ids(ast))
+                    if "leaf" in {"value", "all"}:
+                        ids.update(get_value_ids(ast))
+                    if "leaf" in {"type", "all"}:
+                        ids.update(get_type_ids(ast))
+
+                    json.dump(ids, fp=fout) 
+                    fout.write("\n")
+    logging.info("Wrote to: {}".format(outfile))
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate ids (leaf, values, types) from AST"

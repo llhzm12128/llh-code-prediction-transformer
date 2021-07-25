@@ -29,6 +29,36 @@ def get_value(line, input_type):
     elif input_type == "source_code":
         return line[0]
 
+def external(file_path, n_vocab):
+    outfile = "output/vocab.pkl"
+    logging.info("Reading from: {}".format(file_path))
+    vocab = Counter()
+    with open(file_path, "r") as f:
+        for line in file_tqdm(f):
+            vocab.update(get_value(json.loads(line.strip()), "ast"))
+    vocab_to_keep = [i[0] for i in vocab.most_common(n_vocab)]
+    top_total = sum(i[1] for i in vocab.most_common(n_vocab))
+    total = sum(vocab.values())
+
+    logging.info("Total # of vocab: {}".format(len(vocab)))
+    logging.info(
+        "Using {} top vocab covers: {:.2f}% of the entire dataset".format(
+            n_vocab, 100 * top_total / total
+        )
+    )
+    logging.info("Top 10 most common vocab:")
+    for v, i in vocab.most_common(10):
+        print(v, i)
+
+    # add unk and pad tokens
+    vocab_to_keep.append(UNK)
+    vocab_to_keep.append(PAD)
+    logging.info("Added {} and {}".format(UNK, PAD))
+
+    # dump vocab to file
+    with open(outfile, "wb") as fout:
+        pickle.dump(vocab_to_keep, fout)
+    logging.info("Wrote {} vocab to: {}".format(len(vocab_to_keep), outfile))
 
 def main():
     parser = argparse.ArgumentParser(description="Create vocab for py150 dataset")

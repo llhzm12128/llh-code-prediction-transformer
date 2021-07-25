@@ -48,11 +48,14 @@ class Trainer(object):
                 loss = self.model(x, y, ext, return_loss = True)
                 loss.backward()
                 if batch_counter % 8 == 0:
+                # Accumulate gradients over 8 iterations
                     self.optimizer.step()
                     self.optimizer.zero_grad()
                     self.model.zero_grad()
+                # All 100 batches save losses
                 if batch_counter % 100 == 0:
                     losses.append([epoch, i, loss.item()])
+                # All 1,000 batches, output current metrics and save losses file
                 if batch_counter % 1000 == 0:
                     print("Epoch {}, It. {}/{}, Loss {}".format(epoch, i, self.dataset.__len__() / self.batch_size, loss))
                     with open(os.path.join(self.output_dir, "losses.pickle"), "wb") as fout:

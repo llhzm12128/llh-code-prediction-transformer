@@ -47,6 +47,17 @@ def convert(ast):
     assert len(children) == len(set(children))
     return new_dp
 
+def external(file_path, suffix):
+    outfile = "output/{}_new_trees.json".format(suffix)
+    if os.path.exists(outfile):
+        os.remove(outfile)
+    logging.info("Loading asts from: {}".format(file_path))
+    with open(file_path, "r") as f, open(outfile, "w") as fout:
+        for line in file_tqdm(f):
+            dp = json.loads(line.strip())
+            print(json.dumps(convert(dp)), file=fout)
+    logging.info("Wrote dps to: {}".format(outfile))
+    
 
 def main():
     parser = argparse.ArgumentParser(description="Generate datapoints from AST")

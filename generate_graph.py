@@ -10,9 +10,9 @@ def addChildren(i, data, graph):
                 if "value" in data[c] and "type" in data[c]:
                     graph.add_node(pydot.Node(c, label=data[c]["type"] + "\n{}".format(data[c]["value"])))
                 elif "value" in data[c] and not "type" in data[c]:
-                    graph.add_node(pydot.Node(c, label=data[c]["value"]))
+                    graph.add_node(pydot.Node(c, label="{}\n".format(c) + data[c]["value"]))
                 elif "value" not in data[c] and "type" in data[c]:
-                    graph.add_node(pydot.Node(c, label=data[c]["type"]))
+                    graph.add_node(pydot.Node(c, label="{}\n".format(c) + data[c]["type"]))
                 graph.add_edge(pydot.Edge(i, c, color="blue"))
                 addChildren(c, data, graph)
 

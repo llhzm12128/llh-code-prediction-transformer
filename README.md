@@ -85,6 +85,8 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
 
 ## Vanilla
 
+### Preprocessing
+
 1. generate_new_trees (nodes only have type/value) `python generate_new_trees.py -i PY150 -o NEW_TREES.json`
 2. generate_data (Splitting and Preorder Traversal) `python models/trav_trans/generate_data.py -a NEW_TREES.json -o DPS.TXT`
 3. generate_vocab (generate vocab files) `python generate_vocab.py -i NEW_TREES.json -o VOCAB.pkl -t ast`
@@ -92,6 +94,18 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
 4. Create new trav_trans/dataset.Setup object --> Generates `train_converted.txt`
 5. Use torch.utils.data.DataLoader to pull batches from Dataset, using the dataset.collate function `dataloder = torch.utils.data.DataLoader(dataset, batch_size=X, collate_fn=lambda b: dataset.collate(b, setup.vocab.pad_idx))`
 6. Iterate through batches and feed to model?
+
+### Evaluation
+
+1. Iterate through Test dataset
+2. For each batch, get leaf_ids from "ids.txt"/"leaf_ids" which contains all type nodes that contain a value leaf node 
+3. Make a model prediction for id-1 to predict the type and then for id to predict the value
+4. Check for "special" nodes, e.g. type "attr" belongs to the special type "attribute access" instead of leaf node prediciton
+      - Attribute Access: `attr`
+      - Numeric Constant: `Arithmetic expression (expr) will be either a numeric constant called Const`
+      - Name (variable, module): `Nameload/Namestore`
+      - Function parameter name: `Nameload`
+5. Calculate the MRR for all predictions and broken down into the four special types
 
 ## HuggingFace
 

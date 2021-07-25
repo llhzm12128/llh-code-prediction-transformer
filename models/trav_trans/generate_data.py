@@ -15,6 +15,25 @@ from utils import file_tqdm, get_dfs, separate_dps
 
 logging.basicConfig(level=logging.INFO)
 
+def external(file_path, suffix, context_size):
+    outfile = "output/{}_dps.txt".format(suffix)
+    if os.path.exists(outfile):
+        os.remove(outfile)
+    logging.info("Number of context: {}".format(context_size))
+
+    num_dps = 0
+    logging.info("Loading asts from: {}".format(file_path))
+    with open(file_path, "r") as f, open(outfile, "w") as fout:
+        for line in file_tqdm(f):
+            dp = json.loads(line.strip())
+            asts = separate_dps(dp, context_size)
+            for ast, extended in asts:
+                if len(ast) > 1:
+                    json.dump([get_dfs(ast), extended], fp=fout)
+                    fout.write("\n")
+                    num_dps += 1
+
+    logging.info("Wrote {} datapoints to {}".format(num_dps, outfile))
 
 def main():
     parser = argparse.ArgumentParser(description="Generate datapoints from AST")
