@@ -47,7 +47,7 @@ def mean_reciprocal_rank(y_labels, y_pred):
                 break
         mrr += score
 
-    return mrr / len(y_labels)
+    return mrr / len(y_labels) if len(y_labels > 0) else 0
 
 def eval(model, dataloader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -76,7 +76,7 @@ def eval(model, dataloader):
             
             mrr.append(combined_mrr)
 
-    with open("mrr.pkl", "wb") as fout:
+    with open("output/mrr.pkl", "wb") as fout:
         pickle.dump(mrr, fout)
 
 
