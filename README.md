@@ -105,6 +105,31 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
       - Numeric Constant: `Arithmetic expression (expr) will be either a numeric constant called Const`
       - Name (variable, module): `Nameload/Namestore`
       - Function parameter name: `Nameload`
+
+      Additional metrics:
+
+      - String Prediction
+      - FunctionDef
+      - Imports
+      - NameParam
+
+      Leaf types:
+      - ImportFrom
+      - alias
+      - identifier
+      - ClassDef
+      - NameLoad
+      - attr
+      - NameStore
+      - Str
+      - FunctionDef
+      - NameParam
+      - Num
+      - keyword
+      - vararg
+      - kwarg
+      - NameDel
+
 5. Calculate the MRR for all predictions and broken down into the four special types
 
 ## HuggingFace

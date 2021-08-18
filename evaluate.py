@@ -35,49 +35,95 @@ def main():
     )
     vocab = setup.vocab
 
-    eval(m, dataloader)
+    eval(m, dataloader, vocab)
 
 def mean_reciprocal_rank(y_labels, y_pred):
-    mrr = 0
+    scores = []
     for i, e in enumerate(y_labels):
         score = 0
         for j, f in enumerate(y_pred[i]):
             if e == f:
                 score = 1 / (j + 1)
                 break
-        mrr += score
+        scores.append(score)
 
-    return mrr / len(y_labels) if len(y_labels > 0) else 0
+    return scores
 
-def eval(model, dataloader):
+def eval(model, dataloader, vocab):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     model.eval()
-    mrr = []
+
+    mrrs = {
+        "total": [],
+        "attribute_access": [],
+        "numeric_constant": [],
+        "variable_name": [],
+        "function_prameter_name": []
+    }
+    c = {}
+
     print("Evaluating {} batches".format(len(dataloader)))
     for i, batch in tqdm(enumerate(dataloader)):
-        with torch.no_grad():
-            x = batch["input_seq"][0]
-            y = batch["target_seq"][0]
-            leaf_ids = [b for b in batch["ids"]["leaf_ids"] if b >= 0]
-            prev_leaf_ids = [l - 1 for l in leaf_ids if l > 0]
-            x = x.to(device)
-            output = model(x, None)
+        if True:
+            with torch.no_grad():
+                x = batch["input_seq"][0]
+                y = batch["target_seq"][0]
+                leaf_ids = [b for b in batch["ids"]["leaf_ids"] if b >= 0]
+                prev_leaf_ids = [l - 1 for l in leaf_ids if l > 0]
+                x = x.to(device)
+                output = model(x, None)
 
-            y_type_pred = torch.topk(output[prev_leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for each leaf
-            y_type_labels = y[prev_leaf_ids].cpu().numpy()
+                y_type_pred = torch.topk(output[prev_leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for each leaf
+                y_type_labels = y[prev_leaf_ids].cpu().numpy()
 
-            y_value_pred = torch.topk(output[leaf_ids], 10)[1].cpu().numpy()
-            y_value_labels = y[leaf_ids].cpu().numpy()
+                y_value_pred = torch.topk(output[leaf_ids], 10)[1].cpu().numpy()
+                y_value_labels = y[leaf_ids].cpu().numpy()
 
-            type_mrr = mean_reciprocal_rank(y_type_labels, y_type_pred)
-            value_mrr = mean_reciprocal_rank(y_value_labels, y_value_pred)
-            combined_mrr = (type_mrr + value_mrr) / 2
-            
-            mrr.append(combined_mrr)
+                
+                type_scores = []
+                value_scores = []
 
-    with open("output/mrr.pkl", "wb") as fout:
-        pickle.dump(mrr, fout)
+                attribute_access_scores = []
+                numeric_constant_scores = []
+                variable_name_scores = []
+                function_parameter_name_scores = []
+
+                type_scores = mean_reciprocal_rank(y_type_labels, y_type_pred)
+                value_scores = mean_reciprocal_rank(y_value_labels, y_value_pred)
+
+
+                for j, t in enumerate(y_type_labels):
+                    if vocab.idx2vocab[t] not in c:
+                        c[vocab.idx2vocab[t]] = 1
+                    else:
+                        c[vocab.idx2vocab[t]] += 1
+                        
+                    if vocab.idx2vocab[t] == "attr":
+                        attribute_access_scores.append((value_scores[j] + type_scores[j]) / 2)
+                    elif vocab.idx2vocab[t] == "Num":
+                        numeric_constant_scores.append((value_scores[j] + type_scores[j]) / 2)
+                    elif vocab.idx2vocab[t] == "NameLoad":
+                        variable_name_scores.append((value_scores[j] + type_scores[j]) / 2)
+                
+                if len(value_scores) > 0 and len(type_scores) > 0:
+                    mrrs["total"].append(((sum(type_scores)/len(type_scores)) + (sum(value_scores)/len(value_scores))) / 2)
+                if len(attribute_access_scores) > 0:
+                    mrrs["attribute_access"].append(sum(attribute_access_scores) / len(attribute_access_scores))
+                if len(numeric_constant_scores) > 0:
+                    mrrs["numeric_constant"].append(sum(numeric_constant_scores) / len(numeric_constant_scores))
+                if len(variable_name_scores) > 0:
+                    mrrs["variable_name"].append(sum(variable_name_scores) / len(variable_name_scores))
+        else:
+            break
+    with open("output/c.pkl", "wb") as fout:
+        pickle.dump(c, fout)
+
+    with open("output/mrrs.pkl", "wb") as fout:
+        pickle.dump(mrrs, fout)
+
+    # with open("output/value_scores.pkl", "wb") as fout:
+    #     pickle.dump(value_scores, fout)
 
 
     # for i, batch in tqdm(enumerate(dataloader)):
