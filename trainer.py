@@ -3,6 +3,7 @@ import torch, torch.nn, torch.optim
 from tqdm import tqdm
 import os
 import pickle
+import evaluate
 
 class Trainer(object):
     def __init__(
@@ -66,6 +67,12 @@ class Trainer(object):
                     self.model.state_dict(),
                     os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt")
                 )
+            evaluate.eval(
+                os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
+                "output/test_dps.txt",
+                "output/test_ids.txt",
+                epoch=epoch
+            )
         torch.save(
             self.model.state_dict(), 
             os.path.join(self.output_dir, f"{self.model_name}-final.pt")

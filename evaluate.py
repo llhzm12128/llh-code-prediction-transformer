@@ -1,7 +1,8 @@
 import argparse
-import model
+import model as md
 import torch
 import pickle
+import os
 from tqdm import tqdm
 import numpy as np
 from models.trav_trans import dataset
@@ -19,23 +20,11 @@ def main():
     parser.add_argument("--model", default="output/model-8.pkl", help="Specify the model file")
     parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
-    parser.add_argument("--vocab", help="Specify the vocab file")
     parser.add_argument("--batch_size", default=1, type=int, help="Specify the batch size")
 
     args = parser.parse_args()
 
-    setup = dataset.Setup("output", args.dps, args.ids, mode="test")
-
-    m = model.from_file("output/model-8.pt", setup.vocab)
-
-    dataloader = torch.utils.data.DataLoader(
-        setup.dataset,
-        batch_size = args.batch_size,
-        collate_fn = lambda b: dataset.Dataset.collate(b, setup.vocab.pad_idx)
-    )
-    vocab = setup.vocab
-
-    eval(m, dataloader, vocab)
+    eval(args.model, args.dps, args.ids)
 
 def mean_reciprocal_rank(y_labels, y_pred):
     scores = []
@@ -49,10 +38,22 @@ def mean_reciprocal_rank(y_labels, y_pred):
 
     return scores
 
-def eval(model, dataloader, vocab):
+def eval(model_fp, dps, ids, batch_size = 1, epoch = 0):
+    
+    setup = dataset.Setup("output", model_fp, ids, mode="test")
+
+    m = md.from_file("output/model-8.pt", setup.vocab)
+
+    dataloader = torch.utils.data.DataLoader(
+        setup.dataset,
+        batch_size = batch_size,
+        collate_fn = lambda b: dataset.Dataset.collate(b, setup.vocab.pad_idx)
+    )
+    vocab = setup.vocab
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-    model.eval()
+    m = m.to(device)
+    m.eval()
 
     mrrs = {
         "total": [],
@@ -72,7 +73,7 @@ def eval(model, dataloader, vocab):
                 leaf_ids = [b for b in batch["ids"]["leaf_ids"] if b >= 0]
                 prev_leaf_ids = [l - 1 for l in leaf_ids if l > 0]
                 x = x.to(device)
-                output = model(x, None)
+                output = m(x, None)
 
                 y_type_pred = torch.topk(output[prev_leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for each leaf
                 y_type_labels = y[prev_leaf_ids].cpu().numpy()
@@ -91,7 +92,6 @@ def eval(model, dataloader, vocab):
 
                 type_scores = mean_reciprocal_rank(y_type_labels, y_type_pred)
                 value_scores = mean_reciprocal_rank(y_value_labels, y_value_pred)
-
 
                 for j, t in enumerate(y_type_labels):
                     if vocab.idx2vocab[t] not in c:
@@ -116,11 +116,37 @@ def eval(model, dataloader, vocab):
                     mrrs["variable_name"].append(sum(variable_name_scores) / len(variable_name_scores))
         else:
             break
-    with open("output/c.pkl", "wb") as fout:
-        pickle.dump(c, fout)
+    # with open("output/c.pkl", "wb") as fout:
+    #     pickle.dump(c, fout)
+
+    total_mrr = sum(mrrs["total"]) / len(mrrs["total"])
+    attribute_access_mrr = sum(mrrs["attribute_access"]) / len(mrrs["attribute_access"])
+    numeric_constant_mrr = sum(mrrs["numeric_constant"]) / len(mrrs["numeric_constant"])
+    variable_name_mrr = sum(mrrs["variable_name"]) / len(mrrs["variable_name"])
+
+    print("Eval epoch {}".format(epoch))
+    print("Total: {}".format(total_mrr))
+    print("Attribute Access: {}".format(attribute_access_mrr))
+    print("Numeric Constant: {}".format(numeric_constant_mrr))
+    print("Variable Name: {}".format(variable_name_mrr))
+
+    mrr_dict = {
+        "epoch": epoch,
+        "total": total_mrr,
+        "attribute_access": attribute_access_mrr,
+        "numeric_constant": numeric_constant_mrr,
+        "variable_name": variable_name_mrr
+    }
+
+    result = []
+
+    if os.path.exists("output/mrrs.pkl"):
+        result = pickle.load(open("output/mrrs.pkl", "rb"))
+    
+    result.append(mrr_dict)
 
     with open("output/mrrs.pkl", "wb") as fout:
-        pickle.dump(mrrs, fout)
+        pickle.dump(mrr_dict, fout)
 
     # with open("output/value_scores.pkl", "wb") as fout:
     #     pickle.dump(value_scores, fout)
