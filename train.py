@@ -13,7 +13,7 @@ def main():
 
     args = parser.parse_args()
 
-    setup = models.trav_trans.dataset.Setup("output", "output/dps.txt", "output/ids.txt")
+    setup = models.trav_trans.dataset.Setup("output", "output/train_dps.txt", "output/train_ids.txt")
 
     model = TransformerModel(
         len(setup.vocab.idx2vocab),
