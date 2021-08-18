@@ -40,9 +40,9 @@ def mean_reciprocal_rank(y_labels, y_pred):
 
 def eval(model_fp, dps, ids, batch_size = 1, epoch = 0):
     
-    setup = dataset.Setup("output", model_fp, ids, mode="test")
+    setup = dataset.Setup("output", dps, ids, mode="test")
 
-    m = md.from_file("output/model-8.pt", setup.vocab)
+    m = md.from_file(model_fp, setup.vocab)
 
     dataloader = torch.utils.data.DataLoader(
         setup.dataset,
