@@ -26,8 +26,8 @@ class BaseSetup(object):
         self, base_dir, fp, ids_fp, max_vocab=100000, mode="train"
     ):
         super().__init__()
-        if mode not in {"train", "test"}:
-            raise Exception("Mode must be either train or test")
+        if mode not in {"train", "test", "eval"}:
+            raise Exception("Mode must be either train, eval or test")
         self.mode = mode
         self.fp = fp
         self.max_vocab = max_vocab
