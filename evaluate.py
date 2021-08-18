@@ -138,15 +138,17 @@ def eval(model_fp, dps, ids, batch_size = 1, epoch = 0):
         "variable_name": variable_name_mrr
     }
 
-    result = []
 
-    if os.path.exists("output/mrrs.pkl"):
-        result = pickle.load(open("output/mrrs.pkl", "rb"))
+    return mrr_dict
+    # result = []
+
+    # if os.path.exists("output/mrrs.pkl"):
+    #     result = pickle.load(open("output/mrrs.pkl", "rb"))
     
-    result.append(mrr_dict)
+    # result.append(mrr_dict)
 
-    with open("output/mrrs.pkl", "wb") as fout:
-        pickle.dump(mrr_dict, fout)
+    # with open("output/mrrs.pkl", "wb") as fout:
+    #     pickle.dump(mrr_dict, fout)
 
     # with open("output/value_scores.pkl", "wb") as fout:
     #     pickle.dump(value_scores, fout)

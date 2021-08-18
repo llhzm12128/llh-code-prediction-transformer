@@ -37,6 +37,7 @@ class Trainer(object):
         print(device)
         self.model = self.model.to(device)
         losses = []
+        evals = []
         for epoch in range(self.num_epoch):
             batch_counter = 0
             for i, batch in tqdm(enumerate(self.dataloader)):
@@ -67,12 +68,14 @@ class Trainer(object):
                     self.model.state_dict(),
                     os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt")
                 )
-            evaluate.eval(
+            evals.append(evaluate.eval(
                 os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
                 "output/test_dps.txt",
                 "output/test_ids.txt",
                 epoch=epoch
-            )
+            ))
+            with open(os.path.join(self.output_dir, "evals.pickle"), "wb") as fout:
+                        pickle.dump(evals, fout)
         torch.save(
             self.model.state_dict(), 
             os.path.join(self.output_dir, f"{self.model_name}-final.pt")
