@@ -1,31 +1,12 @@
 from tokenizers import Tokenizer
-from tokenizers.models import WordLevel
-from tokenizers.normalizers import Replace
-from tokenizers.pre_tokenizers import WhitespaceSplit
-from tokenizers.trainers import WordLevelTrainer
+from tokenizers.models import BPE
+from tokenizers.trainers import BpeTrainer
+from tokenizers.pre_tokenizers import CharDelimiterSplit
 
+tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
+tokenizer.pre_tokenizer = CharDelimiterSplit(delimiter=",")
+trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]"])
 
-# Tokenizer
-tokenizer = Tokenizer(WordLevel(unk_token="<unk>"))
+tokenizer.train(["output/train_raw.json"], trainer)
 
-# Normalizer
-# tokenizer.normalizer = Replace(" ", "")
-
-# Pre-Tokenizer
-tokenizer.pre_tokenizer = WhitespaceSplit()
-
-# Post-Processing
-
-# Training
-
-trainer = WordLevelTrainer(
-    vocab_size=100000,
-    special_tokens=[
-        "<unk>",
-        "<mask>",
-        "<pad>",
-        "<ast>"
-    ]
-)
-tokenizer.train(["output/new_ast_raw.txt"], trainer)
-tokenizer.save("tokenizer/code-tokenizer.json")
+tokenizer.save("output/tokenizer.json")
