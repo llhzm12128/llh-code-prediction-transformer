@@ -31,6 +31,7 @@ class Trainer(object):
         self.optimizer = args.optimizer
         self.save_model_on_epoch = args.save_model_on_epoch
         self.model_name = args.model_name
+        self.suffix = args.suffix
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -68,17 +69,17 @@ class Trainer(object):
                     self.model.state_dict(),
                     os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt")
                 )
-            evals.append(evaluate.eval(
-                os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
-                "output/eval_dps.txt",
-                "output/eval_ids.txt",
-                epoch=epoch
-            ))
+                evals.append(evaluate.eval(
+                    os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
+                    "output/eval_dps.txt",
+                    "output/eval_ids.txt",
+                    epoch=epoch
+                ))
             with open(os.path.join(self.output_dir, "evals.pickle"), "wb") as fout:
                         pickle.dump(evals, fout)
         torch.save(
             self.model.state_dict(), 
-            os.path.join(self.output_dir, f"{self.model_name}-final.pt")
+            os.path.join(self.output_dir, f"{self.suffix}-{self.model_name}-final.pt")
         )
 
 class TrainingArgs(object):
@@ -89,7 +90,8 @@ class TrainingArgs(object):
         optimizer,
         model_name = "transformer4code",
         output_dir = "output",
-        save_model_on_epoch = False
+        save_model_on_epoch = False,
+        suffix = ""
     ):
         self.batch_size = batch_size
         self.num_epoch = num_epoch
@@ -97,3 +99,4 @@ class TrainingArgs(object):
         self.model_name = model_name
         self.output_dir = output_dir
         self.save_model_on_epoch = save_model_on_epoch
+        self.suffix = suffix
