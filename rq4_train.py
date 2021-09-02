@@ -21,7 +21,7 @@ def main():
     Tokenizer
 
     model = TransformerModel(
-        len(tokenizer.get_vocab_size()),
+        tokenizer.get_vocab_size(),
         CrossEntropyLoss(ignore_index=tokenizer.encode("[PAD]").ids[0]),
         6,
         300,

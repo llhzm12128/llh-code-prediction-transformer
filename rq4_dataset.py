@@ -27,9 +27,6 @@ class Dataset(torch.utils.data.Dataset):
         extended = []
 
         for i,  (seq, ext) in enumerate(seqs):
-            print("i: {}".format(i))
-            print("seq: {}".format(seq))
-            print("ext: {}".format(ext))
             padding = [pad_idx] * (max_len - len(seq))
             input_seqs.append(seq[:-1] + padding)
             target_seqs.append(seq[1:] + padding)
@@ -37,6 +34,6 @@ class Dataset(torch.utils.data.Dataset):
 
         return {
             "input_seq": torch.tensor(input_seqs),
-            "target_seq": torch.tensor(input_seqs),
+            "target_seq": torch.tensor(target_seqs),
             "extended": torch.tensor(extended)
         }
