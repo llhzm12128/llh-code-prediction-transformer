@@ -277,10 +277,10 @@ class TransformerModel(nn.Module):
         loss = self.loss_fn(y_pred.view(-1, y_pred.size(-1))[ids], y.view(-1)[ids])
         return loss
 
-def from_file(file_path, vocab):
+def from_file(file_path, vocab_size, pad_token):
     model = TransformerModel(
-        len(vocab.idx2vocab),
-        CrossEntropyLoss(ignore_index=vocab.pad_idx),
+        vocab_size,
+        CrossEntropyLoss(ignore_index=pad_token),
         6,
         300,
         1000,

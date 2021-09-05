@@ -18,8 +18,6 @@ def main():
     tokenizer = Tokenizer.from_file("output/tokenizer.json")
     dataset = Dataset("output/train_rq4_dps.txt")
 
-    Tokenizer
-
     model = TransformerModel(
         tokenizer.get_vocab_size(),
         CrossEntropyLoss(ignore_index=tokenizer.encode("[PAD]").ids[0]),
