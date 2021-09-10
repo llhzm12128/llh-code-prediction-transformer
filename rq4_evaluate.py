@@ -79,6 +79,8 @@ def eval(model_fp, dps, ids, tokenizer):
                                 break
                             string_mrrs.append(mean_reciprocal_rank([label.item()], [top_10.tolist()]))
                             # print("\tLabel: {}\n\tTop10: {}".format(label, ", ".join([str(t.item()) for t in top_10])))
+                        else:
+                            break
                     counter += 1 
                 iter_string_mrrs.append(sum(string_mrrs) / len(string_mrrs))
             if len(iter_string_mrrs) > 0:
