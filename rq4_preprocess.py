@@ -47,7 +47,7 @@ def split(ast, max_len, tokenizer):
         "return_ids": [],
         "list_ids": [],
         "dict_ids": [],
-        "raise_ids": [],
+        "raise_ids": []
     }
 
     counter = 0
@@ -112,7 +112,26 @@ def split(ast, max_len, tokenizer):
 
     for i, aug_leaf_id_slice in enumerate(aug_leaf_ids):
         diff = min(aug_leaf_id_slice)
-        slice_ids = dict.fromkeys(ids.keys(), [])
+        slice_ids = {
+            # Is node leaf or internal
+            "leaf_ids": [],
+            "internal_ids": [],
+
+            # Values 
+            "attr_ids": [],
+            "num_ids": [],
+            "name_ids": [],
+            "param_ids": [],
+            "string_ids": [],
+
+            # Types
+            "call_ids": [],
+            "assign_ids": [],
+            "return_ids": [],
+            "list_ids": [],
+            "dict_ids": [],
+            "raise_ids": []
+        }
         for id_key, id_values in ids.items():
             for id_value in id_values:
                 if id_value in aug_leaf_id_slice:
