@@ -27,7 +27,7 @@ def get_leaf_ids(ast):
 
 
 def get_value_ids(ast):
-    ids = {"attr_ids": [], "num_ids": [], "name_ids": [], "param_ids": []}
+    ids = {"attr_ids": [], "num_ids": [], "name_ids": [], "param_ids": [], "string_ids": []}
     for i, node in enumerate(ast):
         if "type" in node:
             if node["type"] == "attr":
@@ -40,6 +40,8 @@ def get_value_ids(ast):
                 ids["name_ids"].append(i + 1)
             elif node["type"] == "NameParam":
                 ids["param_ids"].append(i + 1)
+            elif node["type"] == "Str":
+                ids["string_ids"].append(i + 1)
     return ids
 
 
