@@ -19,12 +19,12 @@ def main():
     # Generate new trees
     generate_new_trees.external(args.file_path, args.suffix)
     # Generate DPS
-    rq6_generate_data.external("output/{}_new_trees.json".format(args.suffix), args.suffix, args.context_size)
+    rq6_generate_data.external("output/{}_new_trees.json".format(args.suffix), args.suffix, args.context_size, args.overlap)
     # Generate Vocab
     if args.generate_vocab:
         generate_vocab.external("output/{}_new_trees.json".format(args.suffix), args.n_vocab)
     # Generate AST IDs
-    rq6_generate_ast_ids.external("output/{}_new_trees.json".format(args.suffix), args.suffix, args.overlap, args.context_size)
+    rq6_generate_ast_ids.external("output/{}_new_trees.json".format(args.suffix), args.suffix, args.context_size, args.overlap)
 
 if __name__ == "__main__":
     main()
