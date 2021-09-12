@@ -1,5 +1,5 @@
 import argparse
-import model as md
+import model
 import torch
 import pickle
 import os
@@ -17,150 +17,126 @@ def generate_test(model, context, device, depth=2, top_k=10):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
-    parser.add_argument("--model", default="output/model-8.pkl", help="Specify the model file")
+    parser.add_argument("--model", default="rq1/model-final.pt", help="Specify the model file")
     parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
-    parser.add_argument("--batch_size", default=1, type=int, help="Specify the batch size")
 
     args = parser.parse_args()
 
     eval(args.model, args.dps, args.ids)
 
-def mean_reciprocal_rank(y_labels, y_pred):
+def mean_reciprocal_rank(labels, predictions, unk_idx):
     scores = []
-    for i, e in enumerate(y_labels):
+    for i, l in enumerate(labels):
+        if l == unk_idx:
+            scores.append(0)
+            continue
         score = 0
-        for j, f in enumerate(y_pred[i]):
-            if e == f:
+        for j, p in enumerate(predictions[i]):
+            if l == p:
                 score = 1 / (j + 1)
                 break
         scores.append(score)
+    if len(scores) > 0:
+        return sum(scores) / len(scores)
+    else:
+        return 0
 
-    return scores
-
-def eval(model_fp, dps, ids, batch_size = 1, epoch = 0):
+def eval(model_fp, dps, ids):
     
     setup = dataset.Setup("output", dps, ids, mode="eval")
-
-    m = md.from_file(model_fp, setup.vocab)
+    ds = setup.dataset
+    vocab = setup.vocab
+    unk_idx = vocab.unk_idx
+    m = model.from_file(model_fp, len(vocab), vocab.pad_idx)
 
     dataloader = torch.utils.data.DataLoader(
-        setup.dataset,
-        batch_size = batch_size,
-        collate_fn = lambda b: dataset.Dataset.collate(b, setup.vocab.pad_idx)
+        ds,
+        batch_size = 1,
+        collate_fn = lambda b: ds.collate(b, setup.vocab.pad_idx)
     )
-    vocab = setup.vocab
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     m = m.to(device)
     m.eval()
 
-    mrrs = {
-        "total": [],
-        "attribute_access": [],
-        "numeric_constant": [],
-        "variable_name": [],
-        "function_prameter_name": []
-    }
-    c = {}
-
     print("Evaluating {} batches".format(len(dataloader)))
+
+    # Values (Predict type + value)
+    # Contains one value per batch
+    value_scores = {
+        "attr_ids": {"v_scores": [], "t_scores": []},
+        "num_ids": {"v_scores": [], "t_scores": []},
+        "name_ids": {"v_scores": [], "t_scores": []},
+        "param_ids": {"v_scores": [], "t_scores": []},
+        "string_ids": {"v_scores": [], "t_scores": []}
+    }
+
+    # Types (Predict type only)
+    type_scores = {
+        "call_ids": [],
+        "assign_ids": [],
+        "return_ids": [],
+        "list_ids": [],
+        "dict_ids": [],
+        "raise_ids": []        
+    }
+
     for i, batch in tqdm(enumerate(dataloader)):
+        if True:
+            with torch.no_grad():
+                x = batch["input_seq"][0]
+                y = batch["target_seq"][0]
+                
+                x = x.to(device)
+                output = m(x, None)
+                
+                ### Evaluate value scores, type + value ###
+
+                for key in value_scores:
+                    print("{}".format(key))
+                    value_ids = [a for a in batch["ids"][key]]
+                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
+                    
+                    print(" ".join([vocab.idx2vocab[v] for v in y[value_ids]]))
+                    print(" ".join([vocab.idx2vocab[v] for v in y[type_ids]]))
+
+                    # value scoring
+                    if len(value_ids) > 0:
+                        value_predictions = [torch.topk(o, 10)[1].tolist() for o in output[value_ids]]
+                        value_scores[key]["v_scores"].append(mean_reciprocal_rank(y[value_ids], value_predictions, unk_idx))
+
+                    # type scoring
+                    if len(type_ids) > 0:
+                        type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
+                        value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
+
+                for key in type_scores:
+                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
+
+                    if len(type_ids) > 0:
+                        type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
+                        type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
         
-        with torch.no_grad():
-            x = batch["input_seq"][0]
-            y = batch["target_seq"][0]
-            leaf_ids = [b for b in batch["ids"]["leaf_ids"] if b >= 0]
-            prev_leaf_ids = [l - 1 for l in leaf_ids if l > 0]
-            x = x.to(device)
-            output = m(x, None)
+    for k, s in value_scores.items():
+        print("{}".format(k))
+        if len(value_scores[k]["t_scores"]) > 0:
+            print("\tType Prediction: {}".format(sum(value_scores[k]["t_scores"])/len(value_scores[k]["t_scores"])))
+        else:
+            print("\tType Prediction: None")
+        if len(value_scores[k]["v_scores"]) > 0:
+            print("\tValue Prediction: {}".format(sum(value_scores[k]["v_scores"])/len(value_scores[k]["v_scores"])))
+        else:
+            print("\tValuePrediction: None")
 
-            y_type_pred = torch.topk(output[prev_leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for type
-            y_type_labels = y[prev_leaf_ids].cpu().numpy()
+    for k, s in type_scores.items():
+        print("{}".format(k))
+        if len(type_scores[k]) > 0:
+            print("\tType Prediction: {}".format(sum(type_scores[k])/len(type_scores[k])))
+        else:
+            print("\tType Prediction: None")
 
-            y_value_pred = torch.topk(output[leaf_ids], 10)[1].cpu().numpy() # Top 10 predictions for value
-            y_value_labels = y[leaf_ids].cpu().numpy()
-
-            type_scores = []
-            value_scores = []
-
-            attribute_access_scores = []
-            numeric_constant_scores = []
-            variable_name_scores = []
-            # function_parameter_name_scores = []
-
-            type_scores = mean_reciprocal_rank(y_type_labels, y_type_pred)
-            value_scores = mean_reciprocal_rank(y_value_labels, y_value_pred)
-
-            for j, t in enumerate(y_type_labels):
-                if vocab.idx2vocab[t] == "attr":
-                    attribute_access_scores.append([type_scores[j], value_scores[j]])
-                elif vocab.idx2vocab[t] == "Num":
-                    numeric_constant_scores.append([type_scores[j], value_scores[j]])
-                elif vocab.idx2vocab[t] == "NameLoad":
-                    variable_name_scores.append([type_scores[j], value_scores[j]])
-            
-            # Add entries to mrrs
-
-            if len(value_scores) > 0 and len(type_scores) > 0:
-                mrrs["total"].append({
-                    "type": sum(type_scores) / len(type_scores),
-                    "value": sum(value_scores) / len(value_scores)
-                })
-            if len(attribute_access_scores) == 2:
-                mrrs["attribute_access"].append({
-                    "type": sum(attribute_access_scores[0]) / len(attribute_access_scores[0]),
-                    "value": sum(attribute_access_scores[1]) / len(attribute_access_scores[1])
-                })
-            if len(numeric_constant_scores) == 2:
-                mrrs["numeric_constant"].append({
-                    "type": sum(numeric_constant_scores[0]) / len(numeric_constant_scores[0]),
-                    "value": sum(numeric_constant_scores[1]) / len(numeric_constant_scores[1])
-                })
-            if len(variable_name_scores) == 2:
-                mrrs["variable_name"].append({
-                    "type": sum(variable_name_scores[0]) / len(variable_name_scores[0]),
-                    "value": sum(variable_name_scores[1]) / len(variable_name_scores[1])
-                })
-
-    # with open("output/c.pkl", "wb") as fout:
-    #     pickle.dump(c, fout)
-
-    total_mrr = {
-        "type": sum([a["type"] for a in mrrs["total"]]) / len([a["type"] for a in mrrs["total"]]),
-        "value": sum([a["value"] for a in mrrs["total"]]) / len([a["value"] for a in mrrs["total"]])
-    }
-
-    attribute_access_mrr = {
-        "type": sum([a["type"] for a in mrrs["attribute_access"]]) / len([a["type"] for a in mrrs["attribute_access"]]),
-        "value": sum([a["value"] for a in mrrs["attribute_access"]]) / len([a["value"] for a in mrrs["attribute_access"]])
-    }
-
-    numeric_constant_mrr = {
-        "type": sum([a["type"] for a in mrrs["numeric_constant"]]) / len([a["type"] for a in mrrs["numeric_constant"]]),
-        "value": sum([a["value"] for a in mrrs["numeric_constant"]]) / len([a["value"] for a in mrrs["numeric_constant"]])
-    }
-
-    variable_name_mrr = {
-        "type": sum([a["type"] for a in mrrs["variable_name"]]) / len([a["type"] for a in mrrs["variable_name"]]),
-        "value": sum([a["value"] for a in mrrs["variable_name"]]) / len([a["value"] for a in mrrs["variable_name"]])
-    }
-
-    print("Eval epoch {}".format(epoch))
-    print("Total: {}/{}".format(total_mrr["type"], total_mrr["value"]))
-    print("Attribute Access: {}/{}".format(attribute_access_mrr["type"], attribute_access_mrr["value"]))
-    print("Numeric Constant: {}/{}".format(numeric_constant_mrr["type"], numeric_constant_mrr["value"]))
-    print("Variable Name: {}/{}".format(variable_name_mrr["type"], variable_name_mrr["value"]))
-
-    mrr_dict = {
-        "epoch": epoch,
-        "total": total_mrr,
-        "attribute_access": attribute_access_mrr,
-        "numeric_constant": numeric_constant_mrr,
-        "variable_name": variable_name_mrr
-    }
-
-    return mrr_dict
+    return {"value_scores": value_scores, "type_scores": type_scores}
 
 if __name__ == "__main__":
     main()

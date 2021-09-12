@@ -77,7 +77,7 @@ def external(file_path, suffix, n_ctx):
 
     if os.path.exists(outfile):
         os.remove(outfile)
-    logging.info("Type of id to get: {}".format("leaf"))
+    logging.info("Type of id to get: {}".format("all"))
 
     logging.info("Loading dps from: {}".format(file_path))
     with open(file_path, "r") as f, open(outfile, "w") as fout:
@@ -87,11 +87,11 @@ def external(file_path, suffix, n_ctx):
             for ast, _ in asts:
                 ids = {}
                 if len(ast) > 1:
-                    if "leaf" in {"leaf", "all"}:
+                    if "all" in {"leaf", "all"}:
                         ids.update(get_leaf_ids(ast))
-                    if "leaf" in {"value", "all"}:
+                    if "all" in {"value", "all"}:
                         ids.update(get_value_ids(ast))
-                    if "leaf" in {"type", "all"}:
+                    if "all" in {"type", "all"}:
                         ids.update(get_type_ids(ast))
 
                     json.dump(ids, fp=fout) 
