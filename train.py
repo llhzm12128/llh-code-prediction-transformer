@@ -10,6 +10,8 @@ def main():
     parser.add_argument("--batch_size", type=int, default=4, help="Specify batch size")
     parser.add_argument("--num_epoch", type=int, default=3, help="Specify number of epochs")
     parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
+    parser.add_argument("--dps", default="output/train_dps.txt")
+    parser.add_argument("--ids", default="output/train_ids.txt")
 
     args = parser.parse_args()
 
