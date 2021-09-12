@@ -12,6 +12,7 @@ def main():
     parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
     parser.add_argument("--dps", default="output/train_dps.txt")
     parser.add_argument("--ids", default="output/train_ids.txt")
+    parser.add_argument("--suffix", default="unnamed")
 
     args = parser.parse_args()
 
@@ -32,7 +33,8 @@ def main():
         num_epoch = args.num_epoch,
         output_dir = "output",
         optimizer = AdamW(model.parameters(), lr=args.learning_rate),
-        save_model_on_epoch = True
+        save_model_on_epoch = True,
+        suffix = args.suffix
     )
 
     trainer = Trainer(
