@@ -104,8 +104,8 @@ def separate_dps(ast, max_len):
     idx = max_len - (len(ast) - (i + half_len))
     aug_asts.append([ast[-max_len:], idx])
     return aug_asts
-    
-def rq6_separate_dps(ast, max_len, overlap = 0.5):
+
+def rq6_separate_dps(ast, max_len, overlap = 2):
     """
     Handles training / evaluation on long ASTs by splitting
     them into smaller ASTs of length max_len, with a sliding
@@ -124,7 +124,7 @@ def rq6_separate_dps(ast, max_len, overlap = 0.5):
         aug_asts : List[List[List, int]]
             List of (ast, beginning idx of unseen nodes)
     """
-    half_len = int(max_len / (1/overlap))
+    half_len = int(max_len / 2)
     if len(ast) <= max_len:
         return [[ast, 0]]
 

@@ -9,7 +9,7 @@ def main():
     parser = argparse.ArgumentParser(description="Preprocess py150 train and eval files")
     parser.add_argument("--file_path", help="Specify py150 file path")
     parser.add_argument("--suffix", help="Specify suffix to determine between train/val/test files")
-    parser.add_argument("--overlap", default=0.5, type=float, help="Specify the sliding window overlap size")
+    parser.add_argument("--overlap", default=2, type=float, help="Specify the sliding window overlap size")
     parser.add_argument("--context_size", default=1000, type=int, help="Specify context size for slicing larger ASTs")
     parser.add_argument("--generate_vocab", default=False, type=bool, help="Specify wether or not to generate a vocab file")
     parser.add_argument("--n_vocab", default=100000, type=int, help="Specify the vocab size")
