@@ -94,12 +94,14 @@ def eval(model_fp, dps, ids):
                 ### Evaluate value scores, type + value ###
 
                 for key in value_scores:
-                    print("{}".format(key))
-                    value_ids = [a for a in batch["ids"][key]]
-                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
+                    # print("{}".format(key))
+                    value_ids = [a for a in batch["ids"][key] if a < len(output)]
+                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0 and a < len(output)]
                     
-                    print(" ".join([vocab.idx2vocab[v] for v in y[value_ids]]))
-                    print(" ".join([vocab.idx2vocab[v] for v in y[type_ids]]))
+                    # print("{}: {}".format(i, value_ids))
+
+                    # print(" ".join([vocab.idx2vocab[v] for v in y[value_ids]]))
+                    # print(" ".join([vocab.idx2vocab[v] for v in y[type_ids]]))
 
                     # value scoring
                     if len(value_ids) > 0:

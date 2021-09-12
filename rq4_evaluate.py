@@ -59,7 +59,7 @@ def eval(model_fp, dps, ids, tokenizer):
         "string_ids": {"v_scores": [], "t_scores": []}
     }
 
-    #Types (Predict type only)
+    # Types (Predict type only)
     type_scores = {
         "call_ids": [],
         "assign_ids": [],
@@ -140,47 +140,6 @@ def eval(model_fp, dps, ids, tokenizer):
         else:
             print("\tType Prediction: None")
 
-
-    #             x = x.to(device)
-    #             output = m(x, None)
-                
-    #             iter_string_mrrs = []
-
-    #             for id in string_ids:
-    #                 # Counter for max string le
-    # ngth to prevent inf loop, until 20
-    #                 breaker = 20
-    #                 counter = 0
-    #                 # MRR per string prediction
-    #                 string_mrrs = []
-    #                 # print("ID: {}".format(id))
-    #                 while counter < breaker:
-    #                     # print("\tCounter: {}".format(counter))
-    #                     if counter == 0:
-    #                         label = y[id + counter]
-    #                         top_10 = torch.topk(output[id + counter], 10)[1]
-    #                         string_mrrs.append(mean_reciprocal_rank([label.item()], [top_10.tolist()]))
-    #                         # print("\tLabel: {}\n\tTop10: {}".format(label, ", ".join([str(t.item()) for t in top_10])))
-    #                     else:
-    #                         if id + counter < len(y):
-    #                             label = y[id + counter]
-    #                             top_10 = torch.topk(output[id + counter], 10)[1]
-    #                             if not tokenizer.decode([top_10[0]]).startswith("#"):
-    #                                 # print("\tNext token no subword continuation, breaking")
-    #                                 string_mrrs.append(0)
-    #                                 break
-    #                             string_mrrs.append(mean_reciprocal_rank([label.item()], [top_10.tolist()]))
-    #                             # print("\tLabel: {}\n\tTop10: {}".format(label, ", ".join([str(t.item()) for t in top_10])))
-    #                         else:
-    #                             break
-    #                     counter += 1 
-    #                 # MRR per line iteration
-    #                 iter_string_mrrs.append(sum(string_mrrs) / len(string_mrrs))
-    #                 print("line{}")
-    #             if len(iter_string_mrrs) > 0:
-    #                 # Total MRR
-    #                 string_accuracy.append(sum(iter_string_mrrs) / len(iter_string_mrrs))
-    # print("String accuracy: {}".format(sum(string_accuracy) / len(string_accuracy)))
 
 if __name__ == "__main__":
     main()
