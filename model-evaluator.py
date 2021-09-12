@@ -9,8 +9,8 @@ def main():
     scores = []
 
     for i, id in enumerate(model_ids):
-        if i == 0:
-            scores.append(evaluate.eval(f"rq1/model-{id}.pt", "output/test_dps.txt", "output/test_ids.txt"))
+        print("== Evaluating model {} ==".format(f"rq1/model/{id}.pt"))
+        scores.append(evaluate.eval(f"rq1/model-{id}.pt", "output/test_dps.txt", "output/test_ids.txt"))
 
     pickle.dump(scores, open('output/scores.pickle', 'wb'))
 
