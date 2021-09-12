@@ -123,7 +123,7 @@ def rq6_separate_dps(ast, max_len, overlap = 2):
         aug_asts : List[List[List, int]]
             List of (ast, beginning idx of unseen nodes)
     """
-    half_len = int(max_len / 2)
+    half_len = int(max_len / overlap)
     if len(ast) <= max_len:
         return [[ast, 0]]
 
