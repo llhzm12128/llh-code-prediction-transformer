@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--dps", default="output/train_dps.txt")
     parser.add_argument("--ids", default="output/train_ids.txt")
     parser.add_argument("--suffix", default="unnamed")
+    parser.add_argument("--save_on_epoch", type=bool, default = False)
 
     args = parser.parse_args()
 
@@ -33,7 +34,7 @@ def main():
         num_epoch = args.num_epoch,
         output_dir = "output",
         optimizer = AdamW(model.parameters(), lr=args.learning_rate),
-        save_model_on_epoch = True,
+        save_model_on_epoch = args.save_on_epoch,
         suffix = args.suffix
     )
 

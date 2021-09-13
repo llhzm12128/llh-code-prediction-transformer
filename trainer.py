@@ -67,14 +67,14 @@ class Trainer(object):
             if self.save_model_on_epoch:
                 torch.save(
                     self.model.state_dict(),
-                    os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt")
+                    os.path.join(self.output_dir, f"{self.suffix}-{self.model_name}-{epoch}.pt")
                 )
-                evals.append(evaluate.eval(
-                    os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
-                    "output/eval_dps.txt",
-                    "output/eval_ids.txt",
-                    epoch=epoch
-                ))
+                # evals.append(evaluate.eval(
+                #     os.path.join(self.output_dir, f"{self.model_name}-{epoch}.pt"),
+                #     "output/eval_dps.txt",
+                #     "output/eval_ids.txt",
+                #     epoch=epoch
+                # ))
             with open(os.path.join(self.output_dir, "evals.pickle"), "wb") as fout:
                         pickle.dump(evals, fout)
         torch.save(
@@ -88,7 +88,7 @@ class TrainingArgs(object):
         batch_size,
         num_epoch,
         optimizer,
-        model_name = "transformer4code",
+        model_name = "model",
         output_dir = "output",
         save_model_on_epoch = False,
         suffix = ""
