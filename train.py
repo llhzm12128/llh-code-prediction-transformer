@@ -17,7 +17,7 @@ def main():
 
     args = parser.parse_args()
 
-    setup = models.trav_trans.dataset.Setup("output", "output/train_dps.txt", "output/train_ids.txt")
+    setup = models.trav_trans.dataset.Setup("output", args.dps, args.ids)
 
     model = TransformerModel(
         len(setup.vocab.idx2vocab),
