@@ -42,13 +42,13 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids):
+def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
     
     setup = dataset.Setup("output", dps, ids, mode="eval")
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx
-    m = model.from_file(model_fp, len(vocab), vocab.pad_idx)
+    m = model.from_file(model_fp, len(vocab), vocab.pad_idx, embedding_size, n_layers)
 
     dataloader = torch.utils.data.DataLoader(
         ds,
