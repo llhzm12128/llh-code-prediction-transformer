@@ -224,9 +224,6 @@ class GPT2Model(nn.Module):
         for block, layer_past in zip(self.h, past):
             hidden_states, present = block(hidden_states, layer_past)
             presents.append(present)
-
-        for block in self.h:
-            hidden_states = block(hidden_states)
         hidden_states = self.ln_f(hidden_states)
         output_shape = input_shape + (hidden_states.size(-1),)
         return hidden_states.view(*output_shape), presents
