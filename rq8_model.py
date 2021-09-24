@@ -281,7 +281,7 @@ class TransformerModel(nn.Module):
     def forward(
         self, x, y, ext=None, paths=None, return_loss=False, position_ids=None, past=None
     ):
-        hidden_states, presents = self.transformer(x, paths, position_ids=position_ids, past=past)
+        hidden_states, presents = self.transformer(x, paths=paths, position_ids=position_ids, past=past)
         y_pred = self.lm_head(hidden_states)
         if not return_loss:
             return y_pred, presents
