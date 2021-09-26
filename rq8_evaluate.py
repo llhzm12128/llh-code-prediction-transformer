@@ -83,12 +83,10 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
     }
 
     for i, batch in tqdm(enumerate(dataloader)):
-        if i == 0:
+        if True:
             with torch.no_grad():
                 x = batch["input_seq"]
                 y = batch["target_seq"][0]
-                
-                print("Y: {}".format(y.size()))
 
                 x = x.to(device)
                 output = m(x, None)[0][0]
