@@ -40,6 +40,7 @@ def get_value_ids(ast):
                 ids["name_ids"].append(i + 1)
             elif node["type"] == "NameParam":
                 ids["param_ids"].append(i + 1)
+            # RQ3/RQ4 additional metrics
             elif node["type"] == "Str":
                 ids["string_ids"].append(i + 1)
     return ids
@@ -53,6 +54,11 @@ def get_type_ids(ast):
         "list_ids": [],
         "dict_ids": [],
         "raise_ids": [],
+        ## New IDs from RQ3
+        "attribute_ids": [],
+        "cond_ids": [],
+        "comp_ids": [],
+        "tuple_ids": []
     }
     for i, node in enumerate(ast):
         if "type" in node:
@@ -69,6 +75,16 @@ def get_type_ids(ast):
                 ids["dict_ids"].append(i)
             elif type_ == "Raise":
                 ids["raise_ids"].append(i)
+            # RQ3 additional metrics
+            elif type_ in {"AttributeLoad", "AttributeStore"}:
+                ids["attribute_ids"].append(i)
+            elif type_ in {"If", "orelse"}:
+                ids["cond_ids"].append(i)
+            elif type_ in {"CompareEq", "CompareIn", "CompareIs"}:
+                ids["comp_ids"].append(i)
+            elif type_ in {"TupleDel", "TupleLoad", "TupleStore"}:
+                ids["tuple_ids"].append(i)
+            
     return ids
 
 
