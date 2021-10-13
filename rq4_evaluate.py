@@ -124,7 +124,7 @@ def eval(model_fp, dps, ids, tokenizer):
                             for j in range(1, len(predictions)):
                                 # If a prediction > 0 doesn't start with ##, the subwort is over
                                 if tokenizer.decode([predictions[j][0]]).strip().startswith("##"):
-                                    value_predictions.append((predictions[j], j, t))
+                                    type_predictions.append((predictions[j], j, t))
                                 else:
                                     break
                         # value scoring
@@ -158,7 +158,7 @@ def eval(model_fp, dps, ids, tokenizer):
                             for j in range(1, len(predictions)):
                                 # If a prediction > 0 doesn't start with ##, the subwort is over
                                 if tokenizer.decode([predictions[j][0]]).strip().startswith("##"):
-                                    value_predictions.append((predictions[j], j, t))
+                                    type_predictions.append((predictions[j], j, t))
                                 else:
                                     break
                         # value scoring
