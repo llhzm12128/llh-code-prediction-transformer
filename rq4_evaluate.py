@@ -78,13 +78,13 @@ def eval(model_fp, dps, ids, tokenizer):
                 x = x.to(device)
                 output = m(x, None)
 
-                ### Evaluate value scores, type + value ###
+                ### Evaluate leaf node scores, type + value ###
                 for key in value_scores:
                     # print("{}".format(key))
                     value_ids = [a - 1 for a in batch["ids"][key] if a > 0]
                     type_ids = [a - 2 for a in batch["ids"][key] if a > 1]
 
-                    # value scoring
+                    # leaf node value scoring
                     if len(value_ids) > 0:
                         # Generate top10 predictions for each value for 20 times if possible, keep predctions if #1 prediction starts with ##
                         limit = 20
@@ -108,19 +108,67 @@ def eval(model_fp, dps, ids, tokenizer):
                         predictions = [pred[0] for pred in value_predictions]
                         value_scores[key]["v_scores"].append(mean_reciprocal_rank(y[y_ids], predictions))
 
-                    # type scoring
+                    # leaf node type scoring
                     if len(type_ids) > 0:
-                        type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
-                        value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[type_ids], type_predictions))
+                        # Generate top10 predictions for each value for 20 times if possible, keep predctions if #1 prediction starts with ##
+                        limit = 20
+                        # Holds top predictions for each value ID, each prediction with i > 0 has to start with ## because of wordpiece
+                        type_predictions = []
+                        for t in type_ids:
+                            # Holds the top 10 predictions for the next 20 words
+                            predictions = torch.topk(output[t:t+min(limit, len(output) - t)], 10)[1].tolist()
+                            # Prediction in form of (top10pred_tokens, offset, id_value)
+                            if len(predictions) == 0:
+                                continue
+                            type_predictions.append((predictions[0], 0, t))
+                            for j in range(1, len(predictions)):
+                                # If a prediction > 0 doesn't start with ##, the subwort is over
+                                if tokenizer.decode([predictions[j][0]]).strip().startswith("##"):
+                                    value_predictions.append((predictions[j], j, t))
+                                else:
+                                    break
+                        # value scoring
+                        y_ids = [y_id[1] + y_id[2] for y_id in type_predictions]
+                        predictions = [pred[0] for pred in type_predictions]
+                        value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[y_ids], predictions))
+
+
+                    # leaf node type scoring
+                    # if len(type_ids) > 0:
+                    #     type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
+                    #     value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[type_ids], type_predictions))
                 
-                ### Evaluate type scores, type ###
+                ### Evaluate internal node scores, type ###
                 for key in type_scores:
                     type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
                     
-                    # type scoring
+                    # internal node scoring
                     if len(type_ids) > 0:
-                        type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
-                        type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions))
+                        # Generate top10 predictions for each value for 20 times if possible, keep predctions if #1 prediction starts with ##
+                        limit = 20
+                        # Holds top predictions for each value ID, each prediction with i > 0 has to start with ## because of wordpiece
+                        type_predictions = []
+                        for t in type_ids:
+                            # Holds the top 10 predictions for the next 20 words
+                            predictions = torch.topk(output[t:t+min(limit, len(output) - t)], 10)[1].tolist()
+                            # Prediction in form of (top10pred_tokens, offset, id_value)
+                            if len(predictions) == 0:
+                                continue
+                            type_predictions.append((predictions[0], 0, t))
+                            for j in range(1, len(predictions)):
+                                # If a prediction > 0 doesn't start with ##, the subwort is over
+                                if tokenizer.decode([predictions[j][0]]).strip().startswith("##"):
+                                    value_predictions.append((predictions[j], j, t))
+                                else:
+                                    break
+                        # value scoring
+                        y_ids = [y_id[1] + y_id[2] for y_id in type_predictions]
+                        predictions = [pred[0] for pred in type_predictions]
+                        type_scores[key]["t_scores"].append(mean_reciprocal_rank(y[y_ids], predictions))
+
+                    # if len(type_ids) > 0:
+                    #     type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
+                    #     type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions))
 
     for k, s in value_scores.items():
         print("{}".format(k))
