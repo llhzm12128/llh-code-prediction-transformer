@@ -164,7 +164,7 @@ def eval(model_fp, dps, ids, tokenizer):
                         # value scoring
                         y_ids = [y_id[1] + y_id[2] for y_id in type_predictions]
                         predictions = [pred[0] for pred in type_predictions]
-                        type_scores[key]["t_scores"].append(mean_reciprocal_rank(y[y_ids], predictions))
+                        type_scores[key].append(mean_reciprocal_rank(y[y_ids], predictions))
 
                     # if len(type_ids) > 0:
                     #     type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
