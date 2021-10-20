@@ -140,3 +140,29 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
 4. generate_raw_txt (Remove whitespace, TXT, only includes node values) -> for tokenizer
 5. tokenizer (train tokenizer on raw training data new_ast_raw.txt)
 6. convert (Tokenize and add special token to new trees) (necessary?) (maybe just add special token instead of tokenizing, which will be done later on)
+
+# TODO
+- [x] **Background and Motivation** (90%)\
+  I am satisfied with the current outline, maybe add some more information?
+- [ ] **Theoretical Background**
+  - [x] **Artificial Intelligence** (80%)\
+    Almost done, still missing some more details on attention and how GPT-2 compares to the normal Transformer model
+  - [ ] **Programming Language Aspects** (0%)\
+    Have yet to write about AST
+- [ ] **Model Training and Evaluation / Model Usage** (0%)\
+  How can the model be used in productions? Which approaches can be used? (Greedy, Beam search)
+- [x] **RQ3 Should additional metrics be tracked for model evaluation?** (90%)\
+  I've added additional frequent scores to the evaluation and picked a few which may be interesting for model evaluation, results for those interesting values have to be added as chart
+- [x] **RQ4: Can the out-of-vocabulary issue be reduced by using an alternative tokenizer? (90%)**
+  There's a bug where internal nodes are not treated as subwords and therefore could cause worse results. I've fixed this issue but the results are only marginally better, but at least they are better at the places they were expected to be better. Reasons for that: Predicting one word is easier than having a high accuracy on predicting multiple words
+- [ ] **RQ Takeaway Boxes** (0%)\
+  I'll add some concluding details about each RQ in takeaway boxes
+- [ ] **Threats and Future Work** (0%)\
+  To be done
+- [ ] **Conclusion** (0%)\
+  To be done
+- [ ] **Abstract** (0%)\
+  To be done
+- [ ] **Rework/rewrite thesis** (0%)\
+  To be done
+
