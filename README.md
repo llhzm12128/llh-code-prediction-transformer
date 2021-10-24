@@ -144,10 +144,10 @@ Code-Prediction-Transformer is CC-BY-NC 4.0 (Attr Non-Commercial Inter.) (e.g., 
 # TODO
 - [x] **Background and Motivation** (90%)\
   I am satisfied with the current outline, maybe add some more information?
-- [ ] **Theoretical Background**
+- [X] **Theoretical Background**
   - [x] **Artificial Intelligence** (80%)\
     Almost done, still missing some more details on attention and how GPT-2 compares to the normal Transformer model
-  - [ ] **Programming Language Aspects** (0%)\
+  - [X] **Programming Language Aspects** (0%)\
     Have yet to write about AST
 - [ ] **Model Training and Evaluation / Model Usage** (0%)\
   How can the model be used in productions? Which approaches can be used? (Greedy, Beam search)
