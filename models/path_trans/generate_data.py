@@ -5,6 +5,11 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+'''
+* Function: PathTrans模型的数据预处理；AST包含的叶子node数量最大为1000，每条路径的最大长度为13
+* detail: 对于叶子node数量大于1000的AST，使用滑动窗口将其拆分为多个包含1000个node的AST。对于大于13的路径，保留叶子节点截断根节点
+'''
+
 import argparse
 import json
 import logging
@@ -105,7 +110,9 @@ def main():
             dp = json.loads(line.strip())
             for dp in get_dps(dp, args.n_ctx, args.max_path_len):
                 if len(dp[0]) > 1:
-                    json.dump(dp, fout)
+                    #json中保存从AST中提取的路径
+                    #每条json数据的结构为：[leaf_tokens列表(一维列表)，已经计算过loss的token的数量(int)，提取的路径列表(二维列表)]
+                    json.dump(dp, fout)    
                     fout.write("\n")
                     num_dps += 1
 

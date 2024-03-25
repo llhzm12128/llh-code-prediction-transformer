@@ -100,8 +100,8 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
 
                 for key in value_scores:
                     # print("{}".format(key))
-                    value_ids = [a for a in batch["ids"][key] if a < len(output)]
-                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0 and a < len(output)]
+                    value_ids = [a for a in batch["ids"][key] if a < len(output)]    #叶子节点在AST中的位置（每个AST都是从零开始计算）
+                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0 and a < len(output)]#叶子的父类型节点在AST中的位置（每个AST都是从零开始计算） 
                     
                     # print("{}: {}".format(i, value_ids))
 
@@ -111,7 +111,9 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
                     # value scoring
                     if len(value_ids) > 0:
                         value_predictions = [torch.topk(o, 10)[1].tolist() for o in output[value_ids]]
+                        token = vocab.idx2vocab[y[value_ids][0]]
                         value_scores[key]["v_scores"].append(mean_reciprocal_rank(y[value_ids], value_predictions, unk_idx))
+                        
 
                     # type scoring
                     if len(type_ids) > 0:

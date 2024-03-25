@@ -4,6 +4,7 @@ from tqdm import tqdm
 import os
 import pickle
 import evaluate
+import time
 
 class Trainer(object):
     def __init__(
@@ -40,6 +41,7 @@ class Trainer(object):
         losses = []
         evals = []
         for epoch in range(self.num_epoch):
+            start_time = time.time()
             batch_counter = 0
             for i, batch in tqdm(enumerate(self.dataloader)):
                 x = batch["input_seq"]
@@ -64,6 +66,13 @@ class Trainer(object):
                     with open(os.path.join(self.output_dir, "losses.pickle"), "wb") as fout:
                         pickle.dump(losses, fout)
                 batch_counter += 1
+                
+            end_time = time.time()
+            execution_time = end_time - start_time
+            hours = execution_time // 3600
+            minutes = (execution_time % 3600) // 60
+            seconds = (execution_time % 3600) % 60
+            print("epoch{}程序执行时间为：{}小时 {}分钟 {}秒".format(epoch+1,hours, minutes, seconds))
             if self.save_model_on_epoch:
                 torch.save(
                     self.model.state_dict(),

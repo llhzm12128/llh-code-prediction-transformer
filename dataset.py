@@ -130,6 +130,7 @@ class BaseDataset(torch.utils.data.Dataset):
         with open(self.ids_fp) as f:
             f.seek(line_pos)
             ids_line = f.readline().strip()
+        #return (json.loads(dp_line))
         return (json.loads(dp_line), json.loads(ids_line))
 
     @staticmethod
