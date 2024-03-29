@@ -43,6 +43,7 @@ def get_value_ids(ast):
             # RQ3/RQ4 additional metrics
             elif node["type"] == "Str":
                 ids["string_ids"].append(i + 1)
+                
     return ids
 
 

@@ -197,6 +197,7 @@ class GPT2Model(nn.Module):
         self.ln_f = LayerNorm(n_embd, std_eps=layer_norm_epsilon)
 
     def forward(self, input_ids, paths=None):
+        #input删除最后一个元素，target删除第一个元素，paths删除第一个path
         input_shape = input_ids.size()
         input_ids = input_ids.view(-1, input_ids.size(-1))
         inputs_embeds = self.wte(input_ids)
@@ -285,7 +286,8 @@ def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers =
         embedding_size,
         1000,
         6,
-        1e-5
+        1e-5,
+        root_paths=True
     )
     model.load_state_dict(torch.load(file_path))
     return model

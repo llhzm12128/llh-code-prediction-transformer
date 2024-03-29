@@ -5,158 +5,137 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+'''
+* Function: PathTrans模型的数据预处理；AST包含的叶子node数量最大为1000，每条路径的最大长度为13
+* detail: 对于叶子node数量大于1000的AST，使用滑动窗口将其拆分为多个包含1000个node的AST。对于大于13的路径，保留叶子节点截断根节点
+'''
+
 import argparse
 import json
 import logging
 import os
+import sys
+sys.path.append('/root/llh-code-prediction-transformer')
 
-from utils import file_tqdm, separate_dps
+from utils import file_tqdm
+from utils import file_tqdm, get_dfs, separate_dps
 
 
 logging.basicConfig(level=logging.INFO)
-
-
-def get_leaf_ids(ast):
-    ids = {"leaf_ids": [], "internal_ids": []}
+#在generate_data.py基础上获取叶子节点id
+#由于Path_trans只预测叶子节点，所以path_trans只获取叶子节点的id
+def get_leaf_info(ast):
+    leaf_tokens = []
+    leaf_ids = []
     for i, node in enumerate(ast):
         if "value" in node:
-            ids["leaf_ids"].append(i)
-        else:
-            ids["internal_ids"].append(i)
-    return ids
+            leaf_ids.append(i)
+            leaf_tokens.append(node["value"])
+               
+    return leaf_tokens, leaf_ids
 
 
-def get_value_ids(ast):
-    ids = {"attr_ids": [], "num_ids": [], "name_ids": [], "param_ids": [], "string_ids": []}
+#获取返回的叶子节点列表对应的type
+def get_leaf_type(ast,leaf_ids):
+    leaf_type = []
+    for id in leaf_ids:
+        for i, node in enumerate(ast):
+            if(id == i+1):
+                leaf_type.append(node["type"])
+    return leaf_type
+    
+
+def get_ancestors(ast):
+    ancestors = {0: []}
+    node2parent = {0: 0}
     for i, node in enumerate(ast):
-        if "type" in node:
-            if node["type"] == "attr":
-                ids["attr_ids"].append(
-                    i + 1
-                )  # + 1 since i is the type, and we want the value
-            elif node["type"] == "Num":
-                ids["num_ids"].append(i + 1)
-            elif node["type"] in {"NameLoad", "NameStore"}:
-                ids["name_ids"].append(i + 1)
-            elif node["type"] == "NameParam":
-                ids["param_ids"].append(i + 1)
-            # RQ3/RQ4 additional metrics
-            elif node["type"] == "Str":
-                ids["string_ids"].append(i + 1)
-    return ids
+        if "children" in node:
+            for child in node["children"]:
+                node2parent[child] = i
+        token = node["value"] if "value" in node else node["type"]
+        ancestors[i] = [token] + ancestors[node2parent[i]]
+    return ancestors
 
 
-def get_type_ids(ast):
-    ids = {
-        "call_ids": [],
-        "assign_ids": [],
-        "return_ids": [],
-        "list_ids": [],
-        "dict_ids": [],
-        "raise_ids": [],
-        ## New IDs from RQ3
-        "attribute_ids": [],
-        "cond_ids": [],
-        "comp_ids": [],
-        "tuple_ids": []
-    }
-    for i, node in enumerate(ast):
-        if "type" in node:
-            type_ = node["type"]
-            if type_ == "Call":
-                ids["call_ids"].append(i)
-            elif type_ == "Assign":
-                ids["assign_ids"].append(i)
-            elif type_ == "Return":
-                ids["return_ids"].append(i)
-            elif type_ in {"ListComp", "ListLoad", "ListStore"}:
-                ids["list_ids"].append(i)
-            elif type_ in {"DictComp", "DictLoad", "DictStore"}:
-                ids["dict_ids"].append(i)
-            elif type_ == "Raise":
-                ids["raise_ids"].append(i)
-            # RQ3 additional metrics
-            elif type_ in {"AttributeLoad", "AttributeStore"}:
-                ids["attribute_ids"].append(i)
-            elif type_ in {"If", "orelse"}:
-                ids["cond_ids"].append(i)
-            elif type_ in {"CompareEq", "CompareIn", "CompareIs"}:
-                ids["comp_ids"].append(i)
-            elif type_ in {"TupleDel", "TupleLoad", "TupleStore"}:
-                ids["tuple_ids"].append(i)
-            
-    return ids
+def get_root_paths(ancestors, leaf_ids, max_path_len):
+    return [ancestors[i][1 :max_path_len + 1] for i in leaf_ids]
 
 
-def external(file_path, suffix, n_ctx):
-    outfile = "output/{}_ids.txt".format(suffix)
+def get_dps(ast, max_len, max_path_len):
+     
+    leaf_tokens, leaf_ids = get_leaf_info(ast)
+    ancestors = get_ancestors(ast)
+    if len(leaf_tokens) <= max_len:
+        leaf_type = get_leaf_type(ast,leaf_ids)
+        return [[leaf_tokens, get_leaf_type(ast,leaf_ids), 0, get_root_paths(ancestors, leaf_ids, max_path_len)]]
 
-    if os.path.exists(outfile):
-        os.remove(outfile)
-    logging.info("Type of id to get: {}".format("all"))
+    half_len = int(max_len / 2)
+    aug_dps = [
+        [
+            leaf_tokens[:max_len],
+            get_leaf_type(ast,leaf_ids[:max_len]),
+            0,
+            get_root_paths(ancestors, leaf_ids[:max_len], max_path_len),
+        ]
+    ]
+    i = half_len
+    while i < len(leaf_tokens) - max_len:
+        aug_dps.append(
+            [
+                leaf_tokens[i : i + max_len],
+                get_leaf_type(ast,leaf_ids[i : i + max_len]),
+                half_len,
+                get_root_paths(ancestors, leaf_ids[i : i + max_len], max_path_len),
+            ]
+        )
+        i += half_len
+    idx = max_len - (len(leaf_tokens) - (i + half_len))
+    aug_dps.append(
+        [
+            leaf_tokens[-max_len:],
+            get_leaf_type(ast,leaf_ids[-max_len:]),
+            idx,
+            get_root_paths(ancestors, leaf_ids[-max_len:], max_path_len),
+        ]
+    )
+    return aug_dps
 
-    logging.info("Loading dps from: {}".format(file_path))
-    with open(file_path, "r") as f, open(outfile, "w") as fout:
-        for line in file_tqdm(f):
-            dp = json.loads(line.strip())
-            asts = separate_dps(dp, n_ctx)
-            for ast, _ in asts:
-                ids = {}
-                if len(ast) > 1:
-                    if "all" in {"leaf", "all"}:
-                        ids.update(get_leaf_ids(ast))
-                    if "all" in {"value", "all"}:
-                        ids.update(get_value_ids(ast))
-                    if "all" in {"type", "all"}:
-                        ids.update(get_type_ids(ast))
-
-                    json.dump(ids, fp=fout) 
-                    fout.write("\n")
-    logging.info("Wrote to: {}".format(outfile))
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate ids (leaf, values, types) from AST"
-    )
+    parser = argparse.ArgumentParser(description="Generate datapoints from AST")
+    parser.add_argument("--ast_fp", "-a", help="Filepath with the ASTs to be parsed")
     parser.add_argument(
-        "--ast_fp", "-a", help="Filepath with the new ASTs to be parsed"
-    )
-    parser.add_argument(
-        "--out_fp", "-o", default="/tmp/ids.txt", help="Filepath for the output ids"
+        "--out_fp", "-o", default="/tmp/dps.txt", help="Filepath with the output dps"
     )
     parser.add_argument(
         "--n_ctx", "-c", type=int, default=1000, help="Number of contexts for each dp"
     )
     parser.add_argument(
-        "id_type",
-        choices=["leaf", "value", "type", "all"],
-        default="leaf",
-        help="Which ids to generate. Default = leaf",
+        "--max_path_len",
+        "-p",
+        type=int,
+        default=13,
+        help="Max length of rootpath route",
     )
 
     args = parser.parse_args()
     if os.path.exists(args.out_fp):
         os.remove(args.out_fp)
-    logging.info("Type of id to get: {}".format(args.id_type))
+    logging.info("Writing dps to: {}".format(args.out_fp))
 
-    logging.info("Loading dps from: {}".format(args.ast_fp))
+    num_dps = 0
     with open(args.ast_fp, "r") as f, open(args.out_fp, "w") as fout:
         for line in file_tqdm(f):
             dp = json.loads(line.strip())
-            asts = separate_dps(dp, args.n_ctx)
-            for ast, _ in asts:
-                ids = {}
-                if len(ast) > 1:
-                    if args.id_type in {"leaf", "all"}:
-                        ids.update(get_leaf_ids(ast))
-                    if args.id_type in {"value", "all"}:
-                        ids.update(get_value_ids(ast))
-                    if args.id_type in {"type", "all"}:
-                        ids.update(get_type_ids(ast))
-
-                    json.dump(ids, fp=fout) 
+            for dp in get_dps(dp, args.n_ctx, args.max_path_len):
+                if len(dp[0]) > 1:
+                    #json中保存从AST中提取的路径
+                    #每条json数据的结构为：[leaf_tokens列表(一维列表)，已经计算过loss的token的数量(int)，提取的路径列表(二维列表)]
+                    json.dump(dp, fout)    
                     fout.write("\n")
-    logging.info("Wrote to: {}".format(args.out_fp))
+                    num_dps += 1
+
+    logging.info("Wrote {} datapoints to {}".format(num_dps, args.out_fp))
 
 
 if __name__ == "__main__":

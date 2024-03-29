@@ -14,16 +14,64 @@ import argparse
 import json
 import logging
 import os
+import sys
+sys.path.append('/root/llh-code-prediction-transformer')
 
 from utils import file_tqdm
+from utils import file_tqdm, get_dfs, separate_dps
 
 
 logging.basicConfig(level=logging.INFO)
+'''
+在原generate_data.py返回值的基础上添加叶子节点对应的type list
+'''
 
+
+""" def get_leaf_type(ast,leaf_ids):
+    leaf_type = []
+    for id in leaf_ids:
+        for i, node in enumerate(ast):
+            if(id == i+1):
+                if node["type"] == "attr":
+                    leaf_type.append("attr")  
+                elif node["type"] == "Num":
+                    leaf_type.append("num")
+                elif node["type"] in {"NameLoad", "NameStore"}:
+                    leaf_type.append("name")
+                elif node["type"] == "NameParam":
+                    leaf_type.append("param")
+                elif node["type"] == "Str":
+                    leaf_type.append("str")
+                else:
+                    leaf_type.append(node["type"])
+                
+    return leaf_type
+ """
+#返回叶子节点对应的type
+def get_leaf_type(ast,leaf_ids):
+    leaf_type = []
+    for i,node in enumerate(ast):
+        if "type" in node and i+1 in leaf_ids:
+            if node["type"] == "attr":
+                leaf_type.append("attr")  
+            elif node["type"] == "Num":
+                leaf_type.append("num")
+            elif node["type"] in {"NameLoad", "NameStore"}:
+                leaf_type.append("name")
+            elif node["type"] == "NameParam":
+                leaf_type.append("param")
+            elif node["type"] == "Str":
+                leaf_type.append("str")
+            else:
+                leaf_type.append(node["type"])
+                
+    return leaf_type
+    
 
 def get_leaf_info(ast):
     leaf_tokens = []
     leaf_ids = []
+    
     for i, node in enumerate(ast):
         if "value" in node:
             leaf_ids.append(i)
@@ -48,10 +96,15 @@ def get_root_paths(ancestors, leaf_ids, max_path_len):
 
 
 def get_dps(ast, max_len, max_path_len):
+     
     leaf_tokens, leaf_ids = get_leaf_info(ast)
+    leaf_types = get_leaf_type(ast,leaf_ids)
     ancestors = get_ancestors(ast)
+    #print(len(leaf_tokens))
+    #print(len(leaf_types))
+    assert(len(leaf_tokens) == len(leaf_types))
     if len(leaf_tokens) <= max_len:
-        return [[leaf_tokens, 0, get_root_paths(ancestors, leaf_ids, max_path_len)]]
+        return [[leaf_tokens, 0, get_root_paths(ancestors, leaf_ids, max_path_len), leaf_types]]
 
     half_len = int(max_len / 2)
     aug_dps = [
@@ -59,6 +112,7 @@ def get_dps(ast, max_len, max_path_len):
             leaf_tokens[:max_len],
             0,
             get_root_paths(ancestors, leaf_ids[:max_len], max_path_len),
+            leaf_types[:max_len],
         ]
     ]
     i = half_len
@@ -68,6 +122,7 @@ def get_dps(ast, max_len, max_path_len):
                 leaf_tokens[i : i + max_len],
                 half_len,
                 get_root_paths(ancestors, leaf_ids[i : i + max_len], max_path_len),
+                leaf_types[i : i + max_len],
             ]
         )
         i += half_len
@@ -77,9 +132,11 @@ def get_dps(ast, max_len, max_path_len):
             leaf_tokens[-max_len:],
             idx,
             get_root_paths(ancestors, leaf_ids[-max_len:], max_path_len),
+            leaf_types[-max_len:],
         ]
     )
     return aug_dps
+
 
 
 def main():

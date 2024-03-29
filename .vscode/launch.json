@@ -4,6 +4,7 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        //trav_trans的训练调试配置
         /* {
             "name": "Python 调试程序: 包含参数的当前文件",
             "type": "debugpy",
@@ -12,15 +13,15 @@
             "console": "integratedTerminal",
             "args": ["--dps","tmp/dps_100k_train.txt","--ids","tmp/ids_100k_train.txt","--suffix","demo"]
         } */
-
-        {
+        //trav_trans的验证调试配置
+        /* {
             "name": "Python 调试程序: 包含参数的当前文件",
             "type": "debugpy",
             "request": "launch",
             "program": "/root/llh-code-prediction-transformer/evaluate.py",
             "console": "integratedTerminal",
             "args": ["--model","output/demo-model-final.pt","--dps","tmp/dps_50k_eval.txt","--ids","tmp/ids_50k_eval.txt"]
-        }
+        } */
         /* {
             "name": "Python 调试程序: 包含参数的当前文件",
             "type": "debugpy",
@@ -29,6 +30,36 @@
             "console": "integratedTerminal",
             "args": ["-a","tmp/new_trees.json","-o","tmp/dps.txt","-c","1000"]
         } */
+        /* //path_trans的训练调试配置
+        {
+            "name": "Python 调试程序: 包含参数的当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/llh-code-prediction-transformer/train_pathMode.py",
+            "console": "integratedTerminal",
+            "args": ["--dps","tmp/path_dps_100k_train.txt","--ids","tmp/ids_100k_train.txt","--suffix","pathTransDemo"]
+        } */
+        //path_trans的评估调试配置
+        {
+            "name": "Python 调试程序: 包含参数的当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/llh-code-prediction-transformer/evaluate_path_Model.py",
+            "console": "integratedTerminal",
+            "args": ["--model","output/pathTransDemo-model-final.pt","--dps","tmp/path_dps_50k_eval.txt",
+                    "--ids","tmp/ids_50k_eval.txt","--save","output/path_trans/value_scores.json"]
+        }
+            //path_trans的生成dps的调试配置
+        /* {
+            "name": "Python 调试程序: 包含参数的当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/llh-code-prediction-transformer/models/path_trans/generate_data.py",
+            "console": "integratedTerminal",
+            "args": ["-a","tmp/new_50k_eval.json","-o","tmp/path_dps_50k_eval.txt"]
+        } */
+
+
     ]
 
 

@@ -47,7 +47,9 @@ class BaseSetup(object):
 
         # set up vocab
         self.vocab = self._create_vocab()
-
+        
+        if os.path.exists(self.filepaths["conv"]):
+            os.remove(self.filepaths["conv"])
         # convert
         if not os.path.exists(self.filepaths["conv"]):
             with open(filtered_fp, "r") as fin, open(
@@ -108,7 +110,8 @@ class BaseVocab(object):
         raise NotImplementedError("method must be implemented by a subclass.")
 
 
-class BaseDataset(torch.utils.data.Dataset):
+#travTrans版
+""" class BaseDataset(torch.utils.data.Dataset):
     def __init__(self, fp, ids_fp):
         super().__init__()
         self.fp = fp
@@ -130,8 +133,44 @@ class BaseDataset(torch.utils.data.Dataset):
         with open(self.ids_fp) as f:
             f.seek(line_pos)
             ids_line = f.readline().strip()
-        #return (json.loads(dp_line))
         return (json.loads(dp_line), json.loads(ids_line))
+    
+    
+
+
+    @staticmethod
+    def collate(seqs, pad_idx=None):
+        raise NotImplementedError("method must be implemented by a subclass.")
+ """
+
+
+#pathTrans版
+class BaseDataset(torch.utils.data.Dataset):
+    def __init__(self, fp, ids_fp):
+        super().__init__()
+        self.fp = fp
+        self.ids_fp = ids_fp
+        self._line_pos_dp = list(utils.line_positions(fp))
+        self._line_pos_ids = list(utils.line_positions(ids_fp))
+        #assert (len(self._line_pos_dp) == len(self._line_pos_ids))
+
+    def __len__(self):
+        return len(self._line_pos_dp)
+
+    def __getitem__(self, idx):
+        line_pos = self._line_pos_dp[idx]
+        with open(self.fp) as f:
+            f.seek(line_pos)
+            dp_line = f.readline().strip()
+
+        line_pos = self._line_pos_ids[idx]
+        with open(self.ids_fp) as f:
+            f.seek(line_pos)
+            ids_line = f.readline().strip()
+        return (json.loads(dp_line))
+    
+    
+
 
     @staticmethod
     def collate(seqs, pad_idx=None):
