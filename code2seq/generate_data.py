@@ -11,6 +11,7 @@ from utils import get_ancestors, get_terminal_nodes, parallelize, tokenize
 from tqdm import tqdm
 
 
+
 PLACEHOLDER = "<placeholder_token>"
 UNK = "<unk_token>"
 
@@ -73,13 +74,13 @@ def extract_paths(ast, max_length):
 
 def get_all_paths(ast, id_type, max_path_len, max_num_paths):
     if id_type == "leaves":
-        nodes = get_terminal_nodes(ast)
+        nodes = get_terminal_nodes(ast) #获取所有叶子节点的id
     else:
         nodes = get_leaf_nodes(ast, id_type)
     if not nodes:
         return []
     
-    all_paths = extract_paths(ast, max_path_len)
+    all_paths = extract_paths(ast, max_path_len) 
     ast_values = [get_value(i) for i in ast]
     terminal_words = [get_value(ast[i]) for i in get_terminal_nodes(ast)]
     tokenized_words = {word: tokenize(word) for word in terminal_words}

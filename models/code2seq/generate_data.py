@@ -6,6 +6,8 @@ import random
 import re
 from collections import defaultdict
 from itertools import chain, combinations, product
+import sys
+sys.path.append('/root/llh-code-prediction-transformer')
 
 from utils import get_ancestors, get_terminal_nodes, parallelize, tokenize
 from tqdm import tqdm
@@ -18,7 +20,7 @@ UNK = "<unk_token>"
 def get_leaf_nodes(ast, id_type):
     # get ids for special leaf types: attr, num, name, param
     if id_type == "attr":
-        types_ = {"attr"}:
+        types_ = {"attr"}
     elif id_type == "num":
         types_ = {"Num"}
     elif id_type == "name":
@@ -73,22 +75,22 @@ def extract_paths(ast, max_length):
 
 def get_all_paths(ast, id_type, max_path_len, max_num_paths):
     if id_type == "leaves":
-        nodes = get_terminal_nodes(ast)
+        nodes = get_terminal_nodes(ast) #获取所有叶子节点id
     else:
-        nodes = get_leaf_nodes(ast, id_type)
+        nodes = get_leaf_nodes(ast, id_type) #获取指定类型的叶子节点id
     if not nodes:
         return []
     
-    all_paths = extract_paths(ast, max_path_len)
-    ast_values = [get_value(i) for i in ast]
-    terminal_words = [get_value(ast[i]) for i in get_terminal_nodes(ast)]
-    tokenized_words = {word: tokenize(word) for word in terminal_words}
-    node_to_path_idx = {i: [] for i in range(len(ast))}
+    all_paths = extract_paths(ast, max_path_len) #提取ast所有端到端路径，中间节点不一定是根节点
+    ast_values = [get_value(i) for i in ast]#ast的所有节点
+    terminal_words = [get_value(ast[i]) for i in get_terminal_nodes(ast)] #ast的所有叶子节点
+    tokenized_words = {word: tokenize(word) for word in terminal_words} #ast叶子节点token化
+    node_to_path_idx = {i: [] for i in range(len(ast))} #每个叶子节点对应的所有路径对的索引（中间节点没有路径对）
     for i, path in enumerate(all_paths):
         node_to_path_idx[path[-1]].append(i)
-
+    
     dps = []
-    paths_to_choose_from = []
+    paths_to_choose_from = [] #某个叶子节点之前的所有路径对
     prev_node = 0
     for node in nodes:
         for j in range(prev_node, node):
@@ -97,33 +99,40 @@ def get_all_paths(ast, id_type, max_path_len, max_num_paths):
             ]
         prev_node = node
 
-        paths_to_here = [all_paths[path_i] for path_i in node_to_path_idx[node]]
-        if len(paths_to_choose_from) + len(paths_to_here) <= max_num_paths:
+        paths_to_here = [all_paths[path_i] for path_i in node_to_path_idx[node]] #右终端节点刚好在node的路径对
+        if len(paths_to_choose_from) + len(paths_to_here) <= max_num_paths:  #两个列表长度之和小于200，则连接两个列表 
             paths = paths_to_choose_from.copy() + paths_to_here
         else:
-            if len(paths_to_here) > max_num_paths:
+            if len(paths_to_here) > max_num_paths: #到目标右孩子节点的路径对个数大于200，则从中随机选择200个路径对
                 paths = random.sample(paths_to_here, max_num_paths)
             else:
-                paths = paths_to_here + random.sample(
+                paths = paths_to_here + random.sample(#从之前的路径对中随机选择
                     paths_to_choose_from, max_num_paths - len(paths_to_here)
                 )
 
         # convert to vocab
         target = ast_values[node]
+        #将path对的id转为token，目标叶子token用PLACEHOLDER代替
         paths = [
             [ast_values[i] if i != node else PLACEHOLDER for i in p] for p in paths
         ]
-        lefts = [tokenized_words[p[0]] for p in paths]
+        lefts = [tokenized_words[p[0]] for p in paths]  #将路径对的左叶子节点token化
+        #将路径对的右叶子节点token化，若右节点为PLACEHOLDER则返回PLACEHOLDER
         rights = [
             tokenized_words[p[-1]] if p[-1] != PLACEHOLDER else [PLACEHOLDER]
             for p in paths
         ]
+       
+        #target：目标token
+        #lefts：二维数组，两个目标node之间的所有路径对的左孩子的token化结果
+        #paths：二维数组，两个目标node之间的所有路径对（包含左右叶子节点）
+        #rights：二维数组，两个目标node之间的所有路径对的右孩子的token化结果
         dps.append([target, lefts, paths, rights])
     return dps
 
 
 def get_word2idx(out_fp):
-    with open(out_fp, "rb") as fin:
+    with open(out_fp, "rb") as fin: 
         vocab = pickle.load(fin)
     word2idx = {word: i for i, word in enumerate(vocab)}
     word2idx = defaultdict(lambda: word2idx[UNK], word2idx)

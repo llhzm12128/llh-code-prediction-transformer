@@ -12,7 +12,7 @@ import pickle
 import re
 from collections import Counter
 
-from utils import get_terminal_nodes, file_tqdm, tokenize
+from utils import get_terminal_nodes, file_tqdm, tokenize,get_dfs
 
 
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +36,9 @@ def get_value(line, vocab_type):
 
 
 def main():
+    #token_vocab.pkl:AST的所有节点的词汇表
+    #subtoken_vocab.pkl:AST的叶子节点值，并进行分割
+    #output_vocab.pkl:AST的所有叶子节点的词汇表
     parser = argparse.ArgumentParser(
         description="Create vocab for code2seq model for py150 dataset"
     )

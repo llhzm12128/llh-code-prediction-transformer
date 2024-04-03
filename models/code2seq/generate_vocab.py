@@ -11,8 +11,10 @@ import logging
 import pickle
 import re
 from collections import Counter
+import sys
+sys.path.append('/root/llh-code-prediction-transformer')
 
-from utils import get_terminal_nodes, file_tqdm, tokenize
+from utils import get_terminal_nodes, file_tqdm, tokenize, get_dfs
 
 
 logging.basicConfig(level=logging.INFO)

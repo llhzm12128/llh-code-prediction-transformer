@@ -197,7 +197,7 @@ class GPT2Model(nn.Module):
         self.ln_f = LayerNorm(n_embd, std_eps=layer_norm_epsilon)
 
     def forward(self, input_ids, paths=None):
-        #input删除最后一个元素，target删除第一个元素，paths删除第一个path
+        #input删除最后一个元素，target删除第一个元素，paths删除第一个path 
         input_shape = input_ids.size()
         input_ids = input_ids.view(-1, input_ids.size(-1))
         inputs_embeds = self.wte(input_ids)

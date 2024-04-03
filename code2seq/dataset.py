@@ -46,14 +46,18 @@ class Dataset(torch.utils.data.Dataset):
                 paths.append(path + [pad_idx] * (max_path_len - len(path)))
             len_pad = torch.ones((max_len - len(paths), max_path_len)).long()
             return torch.cat((torch.tensor(paths), len_pad))
-
-        max_len = max(len(i[1]) for i in batch)
+        
+        #dps.append([target, lefts, paths, rights])
+        max_len = max(len(i[1]) for i in batch) #该batch中路径对数量的最大值
+        #left最长的token数组的长度
         max_start_len = max(
             max([len(start) for start in seq[1]], default=0) for seq in batch
         )
+        #paths最长的路径对的长度
         max_path_len = max(
             max([len(path) for path in seq[2]], default=0) for seq in batch
         )
+        #right最长的token数组的长度
         max_end_len = max(
             max([len(start) for start in seq[3]], default=0) for seq in batch
         )
@@ -64,8 +68,11 @@ class Dataset(torch.utils.data.Dataset):
 
         for (target, starts, paths, ends) in batch:
             all_targets.append(target)
+            #对starts进行填充，输出shape为(max_len, max_start_len)
             starts = combine(starts, max_len, max_start_len, subtoken_pad_idx)
+            #对paths进行填充，输出shape为(max_len, max_path_len)
             paths = combine(paths, max_len, max_path_len, token_pad_idx)
+            #对ends进行填充，输出shape为(max_len, max_end_len)
             ends = combine(ends, max_len, max_end_len, subtoken_pad_idx)
 
             all_starts.append(starts)

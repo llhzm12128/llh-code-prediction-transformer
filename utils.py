@@ -152,6 +152,14 @@ def get_ancestors(ast):
 def get_terminal_nodes(ast):
     terminal_nodes = [i for i, node in enumerate(ast) if "children" not in node]
     return terminal_nodes
+    
+""" def get_terminal_nodes(ast):
+    dp = []
+    for node in ast:
+        if "value" in node:
+            dp.append(node["value"])
+    return dp """
+    
 
     
 def tokenize(s):
