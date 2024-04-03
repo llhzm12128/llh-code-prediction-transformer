@@ -143,6 +143,7 @@ def get_paths(node_to_path_idx, leaf_ids, all_paths):
             for path_index in node_to_path_idx[ids]:
                 if(all_paths[path_index][-1] == leaf_ids[i+1]):#路径的两个叶子节点在ast中是相邻的
                     temp.append(all_paths[path_index])
+            assert(len(temp)>0)
             paths.append(max(temp, key=len))#获取满足上面条件的最长路径
     return paths        
             

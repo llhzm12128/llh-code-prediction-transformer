@@ -199,7 +199,7 @@ class GPT2Model(nn.Module):
     def forward(self, input_ids, paths=None):
         #input删除最后一个元素，target删除第一个元素，paths删除第一个path 
         input_shape = input_ids.size()
-        input_ids = input_ids.view(-1, input_ids.size(-1))
+        input_ids = input_ids.view(-1, input_ids.size(-1)) 
         inputs_embeds = self.wte(input_ids)
         path_embeds = self.path_lstm(paths) if paths is not None else 0
         hidden_states = inputs_embeds + path_embeds

@@ -106,7 +106,7 @@ class Trainer(object):
                 x = batch["input_seq"]
                 y = batch["target_seq"]
                 ext = batch["extended"]
-                paths = batch["root_paths"]
+                paths = batch["paths"]
                 x = x.to(device)
                 y = y.to(device)
                 ext = ext.to(device)

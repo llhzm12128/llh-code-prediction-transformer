@@ -20,12 +20,12 @@ def generate_test(model, context, device, depth=2, top_k=10):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
     parser.add_argument("--model", default="output/pathTransDemo-model-final.pt", help="Specify the model file")
-    parser.add_argument("--dps", default="tmp/path_dps_50k_eval.txt", help="Specify the data file (dps) on which the model should be tested on")
+    parser.add_argument("--dps", default="tmp/long_path_trans/50k_eval.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="tmp/ids_100k_train.txt", help="Specify the data file (ids) on which the model should be tested on")
-    parser.add_argument("--save", default="output/path_trans/value_scores.json", help="Record evaluate results")
+    parser.add_argument("--output", default="output/long_path_trans")
     args = parser.parse_args()
 
-    eval(args.model, args.dps, args.ids, args.save)
+    eval(args.model, args.dps, args.ids, args.output)
 
 #返回某个类型叶子节点的平均MRR
 def mean_reciprocal_rank(labels, predictions, unk_idx):
@@ -45,9 +45,9 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
+def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
     
-    setup = dataset.Setup("output", dps, ids, mode="eval")
+    setup = dataset.Setup(output_fp, dps, ids, mode="eval")
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx
@@ -126,10 +126,10 @@ def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
             print("\tType Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
         else:
             print("\tType Prediction: None")
-    
-    if(os.path.exists(save_fp)):
-        os.remove(save_fp)
-    with open(save_fp, "w") as file:
+    save_file = os.path.join(output_fp, "value_scores.json")
+    if(os.path.exists(save_file)):
+        os.remove(save_file)
+    with open(save_file, "w") as file:
         json.dump(value_scores, file)
     return value_scores
 

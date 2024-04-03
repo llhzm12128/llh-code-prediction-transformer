@@ -12,12 +12,13 @@ def main():
     parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
     parser.add_argument("--dps", default="tmp/path_dps_100k_train.txt")
     parser.add_argument("--ids", default="tmp/ids_100k_train.txt")
+    parser.add_argument("--output", default="output/long_path_trans")#dp convert后的保存目录，模型保存目录,以及其他训练过程中生成的文件
     parser.add_argument("--suffix", default="unnamed")
     parser.add_argument("--save_on_epoch", type=bool, default = False)
 
     args = parser.parse_args()
 
-    setup = models.long_path_trans.dataset.Setup("output", args.dps, args.ids)
+    setup = models.long_path_trans.dataset.Setup(args.output, args.dps, args.ids)
 
     model = TransformerModel(
         len(setup.vocab.idx2vocab),
@@ -33,7 +34,7 @@ def main():
     training_args = TrainingArgs(
         batch_size = args.batch_size,
         num_epoch = args.num_epoch,
-        output_dir = "output",
+        output_dir = args.output,
         optimizer = AdamW(model.parameters(), lr=args.learning_rate),
         save_model_on_epoch = args.save_on_epoch,
         suffix = args.suffix
