@@ -103,7 +103,10 @@ def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
             with torch.no_grad():
                 x = batch["input_seq"][0]
                 y = batch["target_seq"][0]
-                paths = batch["root_paths"]
+                paths = batch["root_paths"] 
+                """
+                 leaf_type似乎有错误，可能leaf_type的第一个元素是多余的，第一个元素没有对应的预测的结果
+                """
                 leaf_type = batch["leaf_type"]
                 
                 paths = paths.to(device)

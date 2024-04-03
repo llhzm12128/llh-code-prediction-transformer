@@ -1,4 +1,4 @@
-import models.trav_trans.dataset as dataset
+
 import torch, torch.nn, torch.optim
 from tqdm import tqdm
 import os

@@ -5,7 +5,7 @@ import pickle
 import os
 from tqdm import tqdm
 import numpy as np
-from models.path_trans import dataset
+from models.long_path_trans import dataset
 import pickle
 import json
 

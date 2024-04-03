@@ -1,7 +1,7 @@
 import argparse
-from trainer import Trainer, TrainingArgs
+from long_path_trainer import Trainer, TrainingArgs
 from model import TransformerModel
-import models.path_trans.dataset
+import models.long_path_trans.dataset
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 
@@ -17,7 +17,7 @@ def main():
 
     args = parser.parse_args()
 
-    setup = models.path_trans.dataset.Setup("output", args.dps, args.ids)
+    setup = models.long_path_trans.dataset.Setup("output", args.dps, args.ids)
 
     model = TransformerModel(
         len(setup.vocab.idx2vocab),
