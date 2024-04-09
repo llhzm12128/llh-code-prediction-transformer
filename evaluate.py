@@ -3,6 +3,7 @@ import model
 import torch
 import pickle
 import os
+import json
 from tqdm import tqdm
 import numpy as np
 from models.trav_trans import dataset
@@ -20,10 +21,10 @@ def main():
     parser.add_argument("--model", default="rq1/model-final.pt", help="Specify the model file")
     parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
-
+    parser.add_argument("--save", default="output/trav_trans/value_and_type_scores.json", help="Record evaluate results")
     args = parser.parse_args()
 
-    eval(args.model, args.dps, args.ids)
+    eval(args.model, args.dps, args.ids, args.save)
 
 def mean_reciprocal_rank(labels, predictions, unk_idx):
     scores = []
@@ -42,7 +43,7 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
+def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
     
     setup = dataset.Setup("output", dps, ids, mode="eval")
     ds = setup.dataset
@@ -144,6 +145,13 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
             print("\tType Prediction: {}".format(sum(type_scores[k])/len(type_scores[k])))
         else:
             print("\tType Prediction: None")
+
+    scores = {"value_scores": value_scores, "type_scores": type_scores}
+    if(os.path.exists(save_fp)):
+        os.remove(save_fp)
+    with open(save_fp, "w") as file:
+        
+        json.dump(scores, file)
 
     return {"value_scores": value_scores, "type_scores": type_scores}
 

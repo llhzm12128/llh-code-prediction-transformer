@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-from dataset import BaseDataset, BaseSetup, BaseVocab
+from dataset import TravBaseDataset, BaseSetup, BaseVocab
 
 
 class Setup(BaseSetup):
@@ -27,7 +27,7 @@ class Vocab(BaseVocab):
         return [dp_conv, ext]
 
 
-class Dataset(BaseDataset):
+class Dataset(TravBaseDataset):
     @staticmethod
     def collate(seqs, pad_idx):
         max_len = max(len(seq[0][0]) for seq in seqs)

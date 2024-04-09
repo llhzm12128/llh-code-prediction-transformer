@@ -9,7 +9,7 @@ import math
 import multiprocessing as mp
 import re
 
-from tqdm import tqdm
+from tqdm import tqdm 
 
 
 def line_positions(file_path):

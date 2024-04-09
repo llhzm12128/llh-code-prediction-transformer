@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-from dataset import BaseDataset, BaseSetup, BaseVocab
+from dataset import PathBaseDataset, BaseSetup, BaseVocab
 
 
 class Setup(BaseSetup):
@@ -28,7 +28,7 @@ class Vocab(BaseVocab):
         return [dp_conv, ext, root_paths, leaf_type]
 
 
-class Dataset(BaseDataset):
+class Dataset(PathBaseDataset):
     #原batch打包函数
     """ @staticmethod
     def collate(seqs, pad_idx, bos_idx=None):

@@ -111,7 +111,7 @@ class BaseVocab(object):
 
 
 #travTrans版
-""" class BaseDataset(torch.utils.data.Dataset):
+class TravBaseDataset(torch.utils.data.Dataset):
     def __init__(self, fp, ids_fp):
         super().__init__()
         self.fp = fp
@@ -141,11 +141,11 @@ class BaseVocab(object):
     @staticmethod
     def collate(seqs, pad_idx=None):
         raise NotImplementedError("method must be implemented by a subclass.")
- """
+ 
 
 
 #pathTrans版
-class BaseDataset(torch.utils.data.Dataset):
+class PathBaseDataset(torch.utils.data.Dataset):
     def __init__(self, fp, ids_fp):
         super().__init__()
         self.fp = fp
@@ -169,8 +169,6 @@ class BaseDataset(torch.utils.data.Dataset):
             ids_line = f.readline().strip()
         return (json.loads(dp_line))
     
-    
-
 
     @staticmethod
     def collate(seqs, pad_idx=None):

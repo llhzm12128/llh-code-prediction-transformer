@@ -35,7 +35,7 @@ class Trainer(object):
         self.suffix = args.suffix
         
     #travsTrans版训练器
-    """ def train(self):
+    def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(device)
         self.model = self.model.to(device)
@@ -85,13 +85,13 @@ class Trainer(object):
                 #     "output/eval_ids.txt",
                 #     epoch=epoch
                 # ))
-            with open(os.path.join(self.output_dir, "evals.pickle"), "wb") as fout:
-                        pickle.dump(evals, fout)
+            #with open(os.path.join(self.output_dir, "evals.pickle"), "wb") as fout:
+            #            pickle.dump(evals, fout)
         torch.save(
             self.model.state_dict(), 
             os.path.join(self.output_dir, f"{self.suffix}-{self.model_name}-final.pt")
-        ) """
-    
+        ) 
+    '''
     #pathTrans版训练器
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -151,7 +151,7 @@ class Trainer(object):
             self.model.state_dict(), 
             os.path.join(self.output_dir, f"{self.suffix}-{self.model_name}-final.pt")
         )
-        
+    '''
         
         
 

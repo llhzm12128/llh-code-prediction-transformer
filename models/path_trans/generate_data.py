@@ -15,10 +15,10 @@ import json
 import logging
 import os
 import sys
-sys.path.append('/root/llh-code-prediction-transformer')
+sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
 
-from utils import file_tqdm
 from utils import file_tqdm, get_dfs, separate_dps
+
 
 
 logging.basicConfig(level=logging.INFO)

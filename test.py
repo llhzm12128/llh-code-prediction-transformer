@@ -42,19 +42,38 @@ value_scores = {
         "str":[],
     }
 
+type_scores = {
+        "call_ids": [],
+        "assign_ids": [],
+        "return_ids": [],
+        "list_ids": [],
+        "dict_ids": [],
+        "raise_ids": [],
+        "attribute_ids": [],
+        "cond_ids": [],
+        "comp_ids": [],
+        "tuple_ids": []
+    }
+
+scores = {"value_scores": value_scores, "type_scores": type_scores}
+
+
 parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
 parser.add_argument("--save", default="output/path_trans/value_scores.json", help="Record evaluate results")
 args = parser.parse_args()
 save_fp = args.save
 if(os.path.exists(save_fp)):
     os.remove(save_fp)
+
 with open(save_fp, "w") as file:
-    json.dump(value_scores, file)
+    json.dump(scores, file)
+    
+
 
 with open(save_fp, "rb") as file:
     loaded_data = json.load(file)
-
-# 使用加载的数据进行操作
 print(loaded_data)
+
+
 
 
