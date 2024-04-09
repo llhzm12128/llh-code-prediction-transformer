@@ -38,7 +38,7 @@ class Vocab(BaseVocab):
 
 class Dataset(PathBaseDataset):
         
-    #删除ids的batch打包函数
+    #将多个dp打包到一个batch中
     @staticmethod
     def collate(seqs, pad_idx, bos_idx=None):
         def combine_root_paths(root_paths, max_len, max_path_len):
@@ -50,9 +50,9 @@ class Dataset(PathBaseDataset):
             len_pad = torch.ones((max_len - len(paths), max_path_len)).long() 
             return torch.cat((torch.tensor(paths), len_pad))
 
-        max_len = max(len(seq[0]) for seq in seqs)
+        max_len = max(len(seq[0]) for seq in seqs) #多个dp中最大的叶子数量
         max_len = max(2, max_len)
-        max_path_len = max(max(len(path) for path in seq[2]) for seq in seqs)
+        max_path_len = max(max(len(path) for path in seq[2]) for seq in seqs) #多个dp中最大的路径长度
         max_path_len = max(2, max_path_len)
         input_seqs = []
         target_seqs = []
@@ -81,7 +81,7 @@ class Dataset(PathBaseDataset):
             "extended": torch.tensor(extended),
             #将root_path_seqs去除第一个path
             "root_paths": new_root_path_seqs,
-            "leaf_type":leaf_type,
+            "leaf_type":leaf_type[1:],
         }
         
 

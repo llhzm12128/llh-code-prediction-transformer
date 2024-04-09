@@ -50,24 +50,24 @@
                     "--ids","tmp/ids_50k_eval.txt","--save","output/path_trans/value_scores.json"]
         } */
             //path_trans的生成dps的调试配置
-        /* {
+        {
             "name": "Python 调试程序: 包含参数的当前文件",
             "type": "debugpy",
             "request": "launch",
             "program": "/root/llh-code-prediction-transformer/models/path_trans/generate_data.py",
             "console": "integratedTerminal",
-            "args": ["-a","tmp/new_50k_eval.json","-o","tmp/path_dps_50k_eval.txt"]
-        } */
+            "args": ["-a","tmp/new_50k_eval.json","-o","tmp/path_trans/path_dps_50k_eval.txt"]
+        }
 
         //code2seq的generate_data.py
-        {
+        /* {
             "name": "Python 调试程序: 包含参数的当前文件",
             "type": "debugpy",
             "request": "launch",
             "program": "/root/llh-code-prediction-transformer/models/code2seq/generate_data.py",
             "console": "integratedTerminal",
             "args": ["-a","tmp/new_100k_train.json","-o","tmp/code2seq/dps_100k.txt", "-b","tmp/code2seq","attr"]
-        }
+        } */
 
 
 

@@ -21,7 +21,7 @@ from utils import file_tqdm, get_dfs, separate_dps, get_terminal_nodes
 
 logging.basicConfig(level=logging.INFO)
 #todo
-#针对每个AST生成一个dp，通过增加默认的路径长度的方式，尽可能多的获取端到端路径
+#针对每个AST生成多个dp，通过增加默认的路径长度的方式，尽可能多的获取端到端路径
 #1.获取AST所有端到端路径（把路径长度延长，尽可能多的获取路径）（代码重用）
 #2.针对每个叶子节点尽量都获取一条端到端路径对（注意满足前一个路径对的右端是后一个路径对的左端，如果某个叶子节点没有路径对，则用一条根到叶子的路径代替，同时左叶子和右叶子和使用路径对相同）
 #3.路径对的获取：优先使用code2seq的路径对，把最大长度设置为26，计算一下包含根节点的路径对百分比（后续可以减少或者增加路径长度进行实验，长度过长可能会由于代码局部性而使准确率降低）
@@ -68,7 +68,10 @@ def get_leaf_type(ast,leaf_ids):
                 leaf_type.append(node["type"])
                 
     return leaf_type
-    
+
+#获取指定node的type或value
+def get_value(node):
+    return node["value"] if "value" in node else node["type"]
 
 def get_leaf_info(ast):
     leaf_tokens = []
@@ -134,23 +137,29 @@ def get_all_paths(ast, all_paths):
         ancestors[i] = [token] + ancestors[node2parent[i]]
     return ancestors
  """
-#根据左叶子节点，获取路径中叶子节点相邻且最长的路径
-def get_paths(node_to_path_idx, leaf_ids, all_paths):
-    paths = []
+#根据左叶子节点，获取路径中叶子节点相邻且最长的路径,并将id转为token
+def get_paths(node_to_path_idx, leaf_ids, all_paths, ast_values):
+    id_paths = []
     for i ,ids in enumerate(leaf_ids):
-        if (i<=len(leaf_ids)-2):
+        if (i<=len(leaf_ids)-2):#最后一个叶子节点没有对应的端到端路径
             temp = []
             for path_index in node_to_path_idx[ids]:
                 if(all_paths[path_index][-1] == leaf_ids[i+1]):#路径的两个叶子节点在ast中是相邻的
                     temp.append(all_paths[path_index])
             assert(len(temp)>0)
-            paths.append(max(temp, key=len))#获取满足上面条件的最长路径
-    return paths        
+            path = max(temp, key=len)
+            id_paths.append(path[1:-1])#获取满足上面条件的最长路径,并且在路径中删除双端的叶子节点
+    
+    #将path对的id转为token
+    token_paths = [
+            [ast_values[i] for i in p] for p in id_paths
+        ]
+    return token_paths       
             
 
 
 def get_dps(ast, max_len, max_path_len):
-     
+    ast_values = [get_value(node) for node in ast]#ast的所有节点
     leaf_tokens, leaf_ids = get_leaf_info(ast)
     leaf_types = get_leaf_type(ast,leaf_ids)
     #ancestors = get_ancestors(ast) 
@@ -162,14 +171,14 @@ def get_dps(ast, max_len, max_path_len):
     #return dp：[leaf_start,paths,leaf_end,ext,leaf_type](注：在对dp进行batch打包时，不需要删除start的最后一个，end的第一个，和paths的第一个)
     assert(len(leaf_tokens) == len(leaf_types))
     if len(leaf_tokens) <= max_len:
-        return [[leaf_tokens, 0, get_paths(node_to_path_idx, leaf_ids, all_paths), leaf_types]]
+        return [[leaf_tokens, 0, get_paths(node_to_path_idx, leaf_ids, all_paths,ast_values), leaf_types]]
 
     half_len = int(max_len / 2)
     aug_dps = [
         [
             leaf_tokens[:max_len],
             0,
-            get_paths(node_to_path_idx, leaf_ids[:max_len], all_paths),
+            get_paths(node_to_path_idx, leaf_ids[:max_len], all_paths,ast_values),
             leaf_types[:max_len],
         ]
     ]
@@ -179,7 +188,7 @@ def get_dps(ast, max_len, max_path_len):
             [
                 leaf_tokens[i : i + max_len],
                 half_len,
-                get_paths(node_to_path_idx, leaf_ids[i : i + max_len], all_paths),
+                get_paths(node_to_path_idx, leaf_ids[i : i + max_len], all_paths, ast_values),
                 leaf_types[i : i + max_len],
             ]
         )
@@ -189,7 +198,7 @@ def get_dps(ast, max_len, max_path_len):
         [
             leaf_tokens[-max_len:],
             idx,
-            get_paths(node_to_path_idx, leaf_ids[-max_len:], all_paths),
+            get_paths(node_to_path_idx, leaf_ids[-max_len:], all_paths, ast_values),
             leaf_types[-max_len:],
         ]
     )
