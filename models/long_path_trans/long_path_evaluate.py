@@ -117,7 +117,8 @@ def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
                     if len(value_ids) > 0:
                         value_predictions = [torch.topk(o, 10)[1].tolist() for o in output[value_ids]]
                         value_scores[key].append(mean_reciprocal_rank(y[value_ids], value_predictions, unk_idx))
-                    
+                if i % 100 == 0:
+                    print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))            
                     
 
     for k in value_scores():
