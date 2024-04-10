@@ -16,8 +16,7 @@ def generate_test(model, context, device, depth=2, top_k=10):
         top_k_values, top_k_indices = torch.topk(output, top_k)
         return top_k_values, top_k_indices
 
-#  python evaluate.py --model output\trav_trans\trav_trans-model-final.pt --dps tmp\trav_trans\dps_eval.txt 
-#  --ids tmp\trav_trans\ids_eval.txt 
+#  python evaluate.py --model output\trav_trans\trav_trans-model-final.pt --dps tmp\trav_trans\dps_eval.txt   --ids tmp\trav_trans\ids_eval.txt 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
     parser.add_argument("--model", default="rq1/model-final.pt", help="Specify the model file")
