@@ -21,10 +21,11 @@ def main():
     parser.add_argument("--model", default="rq1/model-final.pt", help="Specify the model file")
     parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
+    parser.add_argument("--output", default="output/trav_trans") #中间文件保存目录
     parser.add_argument("--save", default="output/trav_trans/value_and_type_scores.json", help="Record evaluate results")
     args = parser.parse_args()
 
-    eval(args.model, args.dps, args.ids, args.save)
+    eval(args.model, args.dps, args.ids, args.save, args.output)
 
 def mean_reciprocal_rank(labels, predictions, unk_idx):
     scores = []
@@ -43,9 +44,9 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
+def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers = 6):
     
-    setup = dataset.Setup("output", dps, ids, mode="eval")
+    setup = dataset.Setup(output_fp, dps, ids, mode="eval")
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx

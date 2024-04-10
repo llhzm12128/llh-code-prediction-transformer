@@ -51,7 +51,7 @@ def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx
-    m = model.from_file(model_fp, len(vocab), vocab.pad_idx, embedding_size, n_layers)
+    m = model.from_file(model_fp, len(vocab), vocab.pad_idx, embedding_size, n_layers,root_paths=True)
 
     dataloader = torch.utils.data.DataLoader(
         ds,
