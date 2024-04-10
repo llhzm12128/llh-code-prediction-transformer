@@ -1,0 +1,8 @@
+将long_path_trans获取的paths进行转换，并将path中的token转换为vocab对应的id
+在所有的evaluate脚本中添加类似于训练脚本的输出
+检查leaf_type是否需要删除第一个元素，对比预测结果的length和leaf_type的length，如果一致则不需要删除第一个元素，如果不一致，则需要删除第一个元素。
+
+
+debug：
+调试path_trans的evaluate脚本，为什么取索引为0的元素？x = batch["input_seq"][0] y = batch["target_seq"][0]
+调试long_path_trans的generate_data脚本，看是否能获取正确的dp

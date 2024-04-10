@@ -19,13 +19,19 @@ class Setup(BaseSetup):
 
 class Vocab(BaseVocab):
     def convert(self, line):
-        dp, ext, root_paths, leaf_type = line
-        dp_conv = [
+        leaf_tokens, ext, paths, leaf_type = line
+        leaf_tokens_conv = [
             self.vocab2idx[token] if token in self.vocab2idx else self.unk_idx
-            for token in dp
+            for token in leaf_tokens
         ]
-        
-        return [dp_conv, ext, root_paths, leaf_type]
+        paths_conv = [
+            [
+                self.vocab2idx[token] if token in self.vocab2idx else self.unk_idx
+                for token in path
+            ]
+            for path in paths
+        ]
+        return [leaf_tokens_conv, ext, paths_conv, leaf_type]
 
 
 class Dataset(PathBaseDataset):
@@ -69,7 +75,7 @@ class Dataset(PathBaseDataset):
     #删除ids的batch打包函数
     @staticmethod
     def collate(seqs, pad_idx, bos_idx=None):
-        def combine_root_paths(root_paths, max_len, max_path_len):
+        def combine_paths(root_paths, max_len, max_path_len):
             paths = []
             for path in root_paths:
                 paths.append(path + [pad_idx] * (max_path_len - len(path)))
@@ -88,7 +94,7 @@ class Dataset(PathBaseDataset):
         path_seqs = []
         #ids = {name: [] for name in seqs[0][1].keys()}
 
-        for i, (seq, ext, root_paths,leaf_type) in enumerate(seqs):
+        for i, (seq, ext, paths,leaf_type) in enumerate(seqs):
             padding = [pad_idx] * (max_len - len(seq))
             #input删除最后一个元素，并使用padding进行尾部填充，使其长度达到max_len（叶子节点最多的序列长度）
             input_seqs.append(seq[:-1] + padding) 
@@ -98,7 +104,7 @@ class Dataset(PathBaseDataset):
             #将每个 path 进行填充，使其达到指定的最大长度 max_path_len
             # 如果 path 的长度小于 max_len，则需要进行填充操作
             #然后对将 paths 序列进行填充，使其达到指定的最大长度 max_len
-            path_seqs.append(combine_root_paths(root_paths, max_len, max_path_len))
+            path_seqs.append(combine_paths(paths, max_len, max_path_len))
             #paths删除第一个path
             #new_root_path_seqs = torch.stack(root_path_seqs)[:, 1:, :]
             #input删除最后一个元素，target删除第一个元素，paths删除第一个path
@@ -109,7 +115,7 @@ class Dataset(PathBaseDataset):
             "extended": torch.tensor(extended),
             #将root_path_seqs去除第一个path
             "paths": path_seqs,
-            "leaf_type":leaf_type,
+            "leaf_type":leaf_type[1:],
         }
         
 

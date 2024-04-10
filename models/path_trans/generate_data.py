@@ -15,7 +15,11 @@ import json
 import logging
 import os
 import sys
-sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
+import platform
+if(platform.system() == "Windows"):
+    sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
+else:
+    sys.path.append("/root/llh-code-prediction-transformer")
 
 from utils import file_tqdm, get_dfs, separate_dps
 
@@ -104,7 +108,7 @@ def get_dps(ast, max_len, max_path_len):
     #print(len(leaf_types))
     assert(len(leaf_tokens) == len(leaf_types))
     if len(leaf_tokens) <= max_len:
-        return [[leaf_tokens, 0, get_root_paths(ancestors, leaf_ids, max_path_len), leaf_types]]
+        return [[leaf_tokens, 0, get_root_paths(ancestors, leaf_ids, max_path_len), leaf_types]] #路径中不包含叶子节点
 
     half_len = int(max_len / 2)
     aug_dps = [

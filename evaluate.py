@@ -87,8 +87,10 @@ def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers =
         "comp_ids": [],
         "tuple_ids": []
     }
-
+    
+    
     for i, batch in tqdm(enumerate(dataloader)):
+        
         if True:
             with torch.no_grad():
                 x = batch["input_seq"][0]
@@ -128,7 +130,11 @@ def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers =
                     if len(type_ids) > 0:
                         type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
                         type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
-        
+                if i % 100 == 0:
+                    print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))
+                    
+               
+    
     for k, s in value_scores.items():
         print("{}".format(k))
         if len(value_scores[k]["t_scores"]) > 0:
