@@ -1,0 +1,80 @@
+ 
+trav_trans复现结果 epoch=12  内部节点的预测似乎有问题（获取内部阶段type id的代码似乎有问题）
+103266it [4:08:46,  6.92it/s]
+attr_ids
+        Type Prediction: 0.9902914378633167
+        Value Prediction: 0.48096104049302746
+num_ids
+        Type Prediction: 0.7386620761613445
+        Value Prediction: 0.6174996234671957
+name_ids
+        Type Prediction: 0.9190335338611998
+        Value Prediction: 0.5895718254446888
+param_ids
+        Type Prediction: 0.9077912004794404
+        Value Prediction: 0.605245059920298
+string_ids
+        Type Prediction: 0.8539519338580525
+        Value Prediction: 0.15895781037884021
+call_ids
+        Type Prediction: 0.4697295780914405
+assign_ids
+        Type Prediction: 0.5545914432022776
+return_ids
+        Type Prediction: 0.6057023069296171
+list_ids
+        Type Prediction: 0.3006380278726439
+dict_ids
+        Type Prediction: 0.19653668468579458
+raise_ids
+        Type Prediction: 0.7943361918256495
+attribute_ids
+        Type Prediction: 0.7542962408484328
+cond_ids
+        Type Prediction: 0.5178207889039118
+comp_ids
+        Type Prediction: 0.4690550479389748
+tuple_ids
+        Type Prediction: 0.42684280587016493
+
+
+trav_trans复现结果 epoch=12 修改获取中间节点id的逻辑之后的结果
+103266it [4:13:36,  6.79it/s]
+attr_ids
+        Type Prediction: 0.9902914378633167
+        Value Prediction: 0.48096104049302746
+num_ids
+        Type Prediction: 0.7386620761613445
+        Value Prediction: 0.6174996234671957
+name_ids
+        Type Prediction: 0.9190335338611998
+        Value Prediction: 0.5895718254446888
+param_ids
+        Type Prediction: 0.9077912004794404
+        Value Prediction: 0.605245059920298
+string_ids
+        Type Prediction: 0.8539519338580525
+        Value Prediction: 0.15895781037884021
+call_ids
+        Type Prediction: 0.8462099694021988
+assign_ids
+        Type Prediction: 0.7501117783802422
+return_ids
+        Type Prediction: 0.4769271334795875
+list_ids
+        Type Prediction: 0.43197969382428586
+dict_ids
+        Type Prediction: 0.017886436480186486
+raise_ids
+        Type Prediction: 0.3721548124225072
+attribute_ids
+        Type Prediction: 0.8364460474587998
+cond_ids
+        Type Prediction: 0.44630285173254197
+comp_ids
+        Type Prediction: 0.4764182498505028
+tuple_ids
+        Type Prediction: 0.5151422326695483
+
+
+

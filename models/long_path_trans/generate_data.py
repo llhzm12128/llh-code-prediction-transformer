@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 
-
+import random
 import argparse
 import json
 import logging
@@ -147,8 +147,13 @@ def get_paths(node_to_path_idx, leaf_ids, all_paths, ast_values):
                 if(all_paths[path_index][-1] == leaf_ids[i+1]):#路径的两个叶子节点在ast中是相邻的
                     temp.append(all_paths[path_index])
             assert(len(temp)>0)
-            path = max(temp, key=len)
-            id_paths.append(path[1:-1])#获取满足上面条件的最长路径,并且在路径中删除双端的叶子节点
+            # temp 是包含路径的列表
+            # 从 temp 中选择长度最长的路径
+            longest_paths = [path for path in temp if len(path) == len(max(temp, key=len))]
+
+            # 随机选择一个路径
+            random_path = random.choice(longest_paths)
+            id_paths.append(random_path[1:-1])#获取满足上面条件的最长路径,并且在路径中删除双端的叶子节点
     
     #将path对的id转为token
     token_paths = [
