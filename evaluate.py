@@ -126,9 +126,11 @@ def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers =
                         type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
                         value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
 
+                #for key in type_scores:
+                #    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
+                #源代码逻辑错误，单纯的内部节点的id不应该减一
                 for key in type_scores:
-                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
-
+                    type_ids = [a for a in batch["ids"][key] if a >=0]
                     if len(type_ids) > 0:
                         type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
                         type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
