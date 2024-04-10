@@ -29,6 +29,9 @@ print(separate_dps(ast, max_len)) """
     num_lines = len(lines) 
 print(num_lines) """
 
+
+
+'''
 import argparse
 import os
 import pickle
@@ -73,7 +76,17 @@ with open(save_fp, "w") as file:
 with open(save_fp, "rb") as file:
     loaded_data = json.load(file)
 print(loaded_data)
+'''
+save_fp = "test1.txt"
+import json
+value_scores = {
+        "attr":[],
+        "num":[],
+        "name":[],
+        "param":[],
+        "str":[],
+    }
 
-
-
-
+with open(save_fp, "w") as file:
+    json.dump(value_scores, file)
+    file.write("\n")

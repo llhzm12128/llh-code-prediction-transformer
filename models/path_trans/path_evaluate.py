@@ -22,11 +22,11 @@ def main():
     parser.add_argument("--model", default="output/pathTransDemo-model-final.pt", help="Specify the model file")
     parser.add_argument("--dps", default="tmp/path_dps_50k_eval.txt", help="Specify the data file (dps) on which the model should be tested on")
     parser.add_argument("--ids", default="tmp/ids_100k_train.txt", help="Specify the data file (ids) on which the model should be tested on")
-    
+    parser.add_argument("--output", default="output/path_trans") #中间文件保存目录
     parser.add_argument("--save", default="output/path_trans/value_scores.json", help="Record evaluate results")
     args = parser.parse_args()
 
-    eval(args.model, args.dps, args.ids, args.save)
+    eval(args.model, args.dps, args.ids, args.save, args.output)
 
 #返回某个类型叶子节点的平均MRR
 def mean_reciprocal_rank(labels, predictions, unk_idx):
@@ -46,9 +46,9 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids,save_fp, embedding_size = 300, n_layers = 6):
+def eval(model_fp, dps, ids,save_fp, output_dir,embedding_size = 300, n_layers = 6):
     
-    setup = path_dataset.Setup("output", dps, ids, mode="eval")
+    setup = path_dataset.Setup(output_dir, dps, ids, mode="eval")
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx

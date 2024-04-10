@@ -9,11 +9,11 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 
 
-#python models\path_trans\path_train.py --batch_size 4 --num_epoch 17 --learning_rate 5e-5 --dps tmp\path_trans\dps_train.txt --output output\path_trans --suffix path_trans
+#python models\path_trans\path_train.py --batch_size 4 --num_epoch 16 --learning_rate 5e-5 --dps tmp\path_trans\dps_train.txt --output output\path_trans --suffix path_trans
 def main():
     parser = argparse.ArgumentParser(description="Train GPT2 Model")
     parser.add_argument("--batch_size", type=int, default=4, help="Specify batch size")
-    parser.add_argument("--num_epoch", type=int, default=17, help="Specify number of epochs")
+    parser.add_argument("--num_epoch", type=int, default=16, help="Specify number of epochs")
     parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
     parser.add_argument("--dps", default="tmp/path_trans/")
     parser.add_argument("--ids", default="tmp/trav_trans/ids_train.txt")
