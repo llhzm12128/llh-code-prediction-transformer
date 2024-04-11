@@ -1,3 +1,5 @@
+import sys
+sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
 import argparse
 import model
 import torch
@@ -6,7 +8,6 @@ import os
 from tqdm import tqdm
 import numpy as np
 from models.path_trans import path_dataset
-import pickle
 import json
 
 def generate_test(model, context, device, depth=2, top_k=10):
@@ -82,7 +83,7 @@ def eval(model_fp, dps, ids,save_fp, output_dir,embedding_size = 300, n_layers =
         "num":[],
         "name":[],
         "param":[],
-        "str":[],
+        "str":[]
     }
 
     # Types (Predict type only)
@@ -105,9 +106,7 @@ def eval(model_fp, dps, ids,save_fp, output_dir,embedding_size = 300, n_layers =
                 x = batch["input_seq"][0]
                 y = batch["target_seq"][0]
                 paths = batch["root_paths"] 
-                """
-                 leaf_type似乎有错误，可能leaf_type的第一个元素是多余的，第一个元素没有对应的预测的结果
-                """
+               
                 leaf_type = batch["leaf_type"]
                 
                 paths = paths.to(device)
@@ -125,12 +124,12 @@ def eval(model_fp, dps, ids,save_fp, output_dir,embedding_size = 300, n_layers =
                     print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))    
                     
 
-    for k in value_scores():
+    for k,v in value_scores.items():
         print("{}".format(k))
         if len(value_scores[k]) > 0:
-            print("\tType Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
+            print("\tValue Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
         else:
-            print("\tType Prediction: None")
+            print("\tValue Prediction: None")
     
     if(os.path.exists(save_fp)):
         os.remove(save_fp)

@@ -278,7 +278,7 @@ class TransformerModel(nn.Module):
         loss = self.loss_fn(y_pred.view(-1, y_pred.size(-1))[ids], y.view(-1)[ids])
         return loss
 
-def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers = 6):
+def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers = 6,root_paths=False):
     model = TransformerModel(
         vocab_size,
         CrossEntropyLoss(ignore_index=pad_token),
@@ -287,7 +287,7 @@ def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers =
         1000,
         6,
         1e-5,
-        root_paths=False
+        root_paths=root_paths
     )
     model.load_state_dict(torch.load(file_path))
     return model

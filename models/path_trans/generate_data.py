@@ -83,7 +83,7 @@ def get_leaf_info(ast):
     return leaf_tokens, leaf_ids
 
 
-def get_ancestors(ast):
+def get_ancestors(ast):#ancestors中包括叶子节点
     ancestors = {0: []}
     node2parent = {0: 0}
     for i, node in enumerate(ast):
@@ -103,11 +103,12 @@ def get_dps(ast, max_len, max_path_len):
      
     leaf_tokens, leaf_ids = get_leaf_info(ast)
     leaf_types = get_leaf_type(ast,leaf_ids)
-    ancestors = get_ancestors(ast)
+    ancestors = get_ancestors(ast) #ancestors包含叶子节点,path的方向是从孩子节点到根节点
     #print(len(leaf_tokens))
     #print(len(leaf_types))
     assert(len(leaf_tokens) == len(leaf_types))
     if len(leaf_tokens) <= max_len:
+        #root_path的长度为max_path_len，且不包括叶子节点
         return [[leaf_tokens, 0, get_root_paths(ancestors, leaf_ids, max_path_len), leaf_types]] #路径中不包含叶子节点
 
     half_len = int(max_len / 2)
@@ -157,7 +158,7 @@ def main():
         "-p",
         type=int,
         default=13,
-        help="Max length of rootpath route",
+        help="Max length of rootpath route, Excluding leaf nodes",
     )
 
     args = parser.parse_args()

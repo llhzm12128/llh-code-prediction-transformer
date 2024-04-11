@@ -1,5 +1,7 @@
  
-trav_trans复现结果 epoch=12  内部节点的预测似乎有问题（获取内部阶段type id的代码似乎有问题）
+trav_trans复现结果 --batch_size 4 --num_epoch 12 --learning_rate 5e-5  layer_norm_epsilon=1e-05 ，其他超参数和原论文一致
+内部节点的预测似乎有问题（获取内部阶段type id的代码似乎有问题）
+每个epoch大概1小时40分钟
 103266it [4:08:46,  6.92it/s]
 attr_ids
         Type Prediction: 0.9902914378633167
@@ -38,7 +40,8 @@ tuple_ids
         Type Prediction: 0.42684280587016493
 
 
-trav_trans复现结果 epoch=12 修改获取中间节点id的逻辑之后的结果
+trav_trans复现结果 --batch_size 4 --num_epoch 12 --learning_rate 5e-5 layer_norm_epsilon=1e-05 ，其他超参数和原论文一致
+修改获取中间节点id的逻辑之后的结果
 103266it [4:13:36,  6.79it/s]
 attr_ids
         Type Prediction: 0.9902914378633167
@@ -77,4 +80,21 @@ tuple_ids
         Type Prediction: 0.5151422326695483
 
 
+path_trans训练参数
+--batch_size 4 --num_epoch 16 --learning_rate 5e-5 layer_norm_epsilon=1e-05 ，其他超参数和原论文一致
+每个epoch大概56分钟
 
+
+path_trans 评估结果
+python models\path_trans\path_evaluate.py --models output\path_trans\path_trans-model-final.pt --dps tmp\path_trans\dps_eval.txt --ids tmp\trav_trans\ids_eval.txt --output output\path_trans --save output/path_trans/value_scores.json
+59121it [1:26:41, 11.37it/s]
+attr
+        Value Prediction: 0.4538730191572318
+num
+        Value Prediction: 0.5849100401633709
+name
+        Value Prediction: 0.5382125007866335
+param
+        Value Prediction: 0.5896002976395489
+str
+        Value Prediction: 0.1284007886254158

@@ -4,8 +4,8 @@
 #
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-
-
+import time
+import sys
 import random
 import argparse
 import json
@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 from itertools import chain, combinations, product
-sys.path.append('/root/llh-code-prediction-transformer')
+sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
 
 from utils import file_tqdm
 from utils import file_tqdm, get_dfs, separate_dps, get_terminal_nodes
@@ -126,7 +126,7 @@ def get_all_paths(ast, all_paths):
         node_to_path_idx[path[0]].append(i) #获取start叶子节点对应的路径对索引
     return node_to_path_idx
 
-""" def get_ancestors(ast):
+def get_ancestors(ast):#ancestors中包括叶子节点
     ancestors = {0: []}
     node2parent = {0: 0}
     for i, node in enumerate(ast):
@@ -136,29 +136,34 @@ def get_all_paths(ast, all_paths):
         token = node["value"] if "value" in node else node["type"]
         ancestors[i] = [token] + ancestors[node2parent[i]]
     return ancestors
- """
+
+def get_root_path(ancestors, leaf_id, max_path_len):
+    root_path = ancestors[leaf_id][1 :max_path_len + 1]
+    root_path.reverse()
+    return root_path
+
 #根据左叶子节点，获取路径中叶子节点相邻且最长的路径,并将id转为token
-def get_paths(node_to_path_idx, leaf_ids, all_paths, ast_values):
-    id_paths = []
+def get_paths(node_to_path_idx, leaf_ids, all_paths, ast_values,max_path_len,ancestors):
+    token_paths = []
+    #print(len(leaf_ids))
     for i ,ids in enumerate(leaf_ids):
-        if (i<=len(leaf_ids)-2):#最后一个叶子节点没有对应的端到端路径
+        if (i<=len(leaf_ids)-2):#不包含最后一个叶子节点的端到端路径
             temp = []
             for path_index in node_to_path_idx[ids]:
                 if(all_paths[path_index][-1] == leaf_ids[i+1]):#路径的两个叶子节点在ast中是相邻的
                     temp.append(all_paths[path_index])
-            assert(len(temp)>0)
-            # temp 是包含路径的列表
-            # 从 temp 中选择长度最长的路径
-            longest_paths = [path for path in temp if len(path) == len(max(temp, key=len))]
+                    #如果没有满足条件的端到端路径，则选择一条root_path代替端到端路径
+            if(len(temp)==0):
+                root_path = get_root_path(ancestors,leaf_ids[i+1],max_path_len)
+                token_paths.append(root_path)
+            else:
+                longest_paths = [path for path in temp if len(path) == len(max(temp, key=len))]
 
-            # 随机选择一个路径
-            random_path = random.choice(longest_paths)
-            id_paths.append(random_path[1:-1])#获取满足上面条件的最长路径,并且在路径中删除双端的叶子节点
-    
-    #将path对的id转为token
-    token_paths = [
-            [ast_values[i] for i in p] for p in id_paths
-        ]
+                # 随机选择一个路径
+                random_path = random.choice(longest_paths)
+                #将id数组转为token数组
+                token_path = [ast_values[i] for i in random_path]
+                token_paths.append(token_path[1:-1])#获取满足上面条件的最长路径,并且在路径中删除双端的叶子节点
     return token_paths       
             
 
@@ -167,7 +172,7 @@ def get_dps(ast, max_len, max_path_len):
     ast_values = [get_value(node) for node in ast]#ast的所有节点
     leaf_tokens, leaf_ids = get_leaf_info(ast)
     leaf_types = get_leaf_type(ast,leaf_ids)
-    #ancestors = get_ancestors(ast) 
+    ancestors = get_ancestors(ast) 
     #print(len(leaf_tokens))
     #print(len(leaf_types))
     all_paths = extract_paths(ast, max_path_len) #提取ast所有端到端路径，中间节点不一定是根节点
@@ -176,14 +181,17 @@ def get_dps(ast, max_len, max_path_len):
     #return dp：[leaf_start,paths,leaf_end,ext,leaf_type](注：在对dp进行batch打包时，不需要删除start的最后一个，end的第一个，和paths的第一个)
     assert(len(leaf_tokens) == len(leaf_types))
     if len(leaf_tokens) <= max_len:
-        return [[leaf_tokens, 0, get_paths(node_to_path_idx, leaf_ids, all_paths,ast_values), leaf_types]]
+        return [[leaf_tokens, 
+                 0, 
+                 get_paths(node_to_path_idx, leaf_ids, all_paths,ast_values, max_path_len,ancestors), 
+                 leaf_types]]
 
     half_len = int(max_len / 2)
     aug_dps = [
         [
             leaf_tokens[:max_len],
             0,
-            get_paths(node_to_path_idx, leaf_ids[:max_len], all_paths,ast_values),
+            get_paths(node_to_path_idx, leaf_ids[:max_len], all_paths,ast_values, max_path_len,ancestors),
             leaf_types[:max_len],
         ]
     ]
@@ -193,7 +201,7 @@ def get_dps(ast, max_len, max_path_len):
             [
                 leaf_tokens[i : i + max_len],
                 half_len,
-                get_paths(node_to_path_idx, leaf_ids[i : i + max_len], all_paths, ast_values),
+                get_paths(node_to_path_idx, leaf_ids[i : i + max_len], all_paths, ast_values,max_path_len,ancestors),
                 leaf_types[i : i + max_len],
             ]
         )
@@ -203,14 +211,20 @@ def get_dps(ast, max_len, max_path_len):
         [
             leaf_tokens[-max_len:],
             idx,
-            get_paths(node_to_path_idx, leaf_ids[-max_len:], all_paths, ast_values),
+            get_paths(node_to_path_idx, leaf_ids[-max_len:], all_paths, ast_values, max_path_len,ancestors),
             leaf_types[-max_len:],
         ]
     )
     return aug_dps
 
+def seconds_to_hms(seconds):
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return hours, minutes, seconds
 
-
+#python models\long_path_trans\generate_data.py -a tmp\new_100k_train.json -o tmp\long_path_trans\dps_train.txt -c 1000 -p 26
+#python models\long_path_trans\generate_data.py -a tmp\new_50k_eval.json -o tmp\long_path_trans\dps_eval.txt -c 1000 -p 26
 def main():
     parser = argparse.ArgumentParser(description="Generate datapoints from AST")
     parser.add_argument("--ast_fp", "-a", help="Filepath with the ASTs to be parsed")
@@ -224,7 +238,7 @@ def main():
         "--max_path_len",
         "-p",
         type=int,
-        default=13,
+        default=26,
         help="Max length of rootpath route",
     )
 
@@ -249,4 +263,9 @@ def main():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    hours, minutes, seconds = seconds_to_hms(end_time - start_time)
+    print("程序运行时间：{}小时{}分钟{}秒".format(int(hours), int(minutes), int(seconds)))
+

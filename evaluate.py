@@ -148,6 +148,12 @@ def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers =
             print("\tValue Prediction: {}".format(sum(value_scores[k]["v_scores"])/len(value_scores[k]["v_scores"])))
         else:
             print("\tValuePrediction: None")
+        print(print("\tAverage Prediction: {}".format(
+            ((sum(value_scores[k]["v_scores"])/len(value_scores[k]["v_scores"]))+
+            (sum(value_scores[k]["t_scores"])/len(value_scores[k]["t_scores"])))/2
+            )))
+        
+
 
     for k, s in type_scores.items():
         print("{}".format(k))

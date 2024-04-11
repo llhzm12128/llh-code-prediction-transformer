@@ -77,7 +77,7 @@ with open(save_fp, "rb") as file:
     loaded_data = json.load(file)
 print(loaded_data)
 '''
-save_fp = "test1.txt"
+""" save_fp = "test1.txt"
 import json
 value_scores = {
         "attr":[],
@@ -89,4 +89,35 @@ value_scores = {
 
 with open(save_fp, "w") as file:
     json.dump(value_scores, file)
-    file.write("\n")
+    file.write("\n") """
+
+
+""" #读取losses.pickle文件
+import pickle
+
+# 指定 pickle 文件路径
+pickle_file_path = "output\\path_trans\\losses.pickle"
+
+# 读取 pickle 文件
+with open(pickle_file_path, 'rb') as f:
+    data = pickle.load(f)
+
+# 打印读取的数据
+print(data) """
+
+""" value_scores = {
+        "attr":[1,2],
+        "num":[2,3],
+        "name":[2,2],
+        "param":[1,1],
+        "str":[2,3]
+    }
+for k,v in value_scores.items():
+    print("{}".format(k))
+    if len(value_scores[k]) > 0:
+        print("\tValue Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
+    else:
+        print("\tValue Prediction: None") """
+    
+list = [1,2,3]
+print(list[1:5])

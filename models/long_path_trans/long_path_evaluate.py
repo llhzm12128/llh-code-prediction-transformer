@@ -121,12 +121,12 @@ def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
                     print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))            
                     
 
-    for k in value_scores():
+    for k,v in value_scores.items():
         print("{}".format(k))
         if len(value_scores[k]) > 0:
-            print("\tType Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
+            print("\tValue Prediction: {}".format(sum(value_scores[k])/len(value_scores[k])))
         else:
-            print("\tType Prediction: None")
+            print("\tValue Prediction: None")
     save_file = os.path.join(output_fp, "value_scores.json")
     if(os.path.exists(save_file)):
         os.remove(save_file)
