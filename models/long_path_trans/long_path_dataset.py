@@ -102,11 +102,12 @@ class Dataset(PathBaseDataset):
             target_seqs.append(seq[1:] + padding)
             extended.append(ext)
             #将每个 path 进行填充，使其达到指定的最大长度 max_path_len
-            # 如果 path 的长度小于 max_len，则需要进行填充操作
-            #然后对将 paths 序列进行填充，使其达到指定的最大长度 max_len
-            path_seqs.append(combine_paths(paths, max_len, max_path_len))
-            #paths删除第一个path
-            #new_root_path_seqs = torch.stack(root_path_seqs)[:, 1:, :]
+            # 如果 path 的长度小于 max_len-1，则需要进行填充操作
+            #然后对将 paths 序列进行填充，使其达到指定的最大长度 max_len-1
+            #减一是因为paths的长度本来就比seq的长度小一
+            path_seqs.append(combine_paths(paths, max_len-1, max_path_len))
+            
+            new_path_seqs = torch.stack(path_seqs)[:, :, :]
             #input删除最后一个元素，target删除第一个元素，paths删除第一个path
 
         return {
@@ -114,7 +115,7 @@ class Dataset(PathBaseDataset):
             "target_seq": torch.tensor(target_seqs),
             "extended": torch.tensor(extended),
             #将root_path_seqs去除第一个path
-            "paths": path_seqs,
+            "paths": new_path_seqs,
             "leaf_type":leaf_type[1:],
         }
         

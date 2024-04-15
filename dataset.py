@@ -48,8 +48,8 @@ class BaseSetup(object):
         # set up vocab
         self.vocab = self._create_vocab()
         
-        if os.path.exists(self.filepaths["conv"]):
-            os.remove(self.filepaths["conv"])
+        """ if os.path.exists(self.filepaths["conv"]):
+            os.remove(self.filepaths["conv"]) """
         # convert
         if not os.path.exists(self.filepaths["conv"]):
             with open(filtered_fp, "r") as fin, open(
@@ -163,10 +163,10 @@ class PathBaseDataset(torch.utils.data.Dataset):
             f.seek(line_pos)
             dp_line = f.readline().strip()
 
-        line_pos = self._line_pos_ids[idx]
+        """ line_pos = self._line_pos_ids[idx]
         with open(self.ids_fp) as f:
             f.seek(line_pos)
-            ids_line = f.readline().strip()
+            ids_line = f.readline().strip() """
         return (json.loads(dp_line))
     
 

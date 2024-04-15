@@ -3,7 +3,7 @@ import torch, torch.nn, torch.optim
 from tqdm import tqdm
 import os
 import pickle
-import evaluate
+
 import time
 
 class Trainer(object):

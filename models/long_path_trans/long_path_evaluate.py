@@ -5,7 +5,7 @@ import pickle
 import os
 from tqdm import tqdm
 import numpy as np
-from models.long_path_trans import dataset
+from models.long_path_trans import long_path_dataset
 import pickle
 import json
 
@@ -47,7 +47,7 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
 
 def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
     
-    setup = dataset.Setup(output_fp, dps, ids, mode="eval")
+    setup = long_path_dataset.Setup(output_fp, dps, ids, mode="eval")
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx
