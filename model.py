@@ -286,7 +286,7 @@ def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers =
         embedding_size,
         1000,
         6,
-        1e-5,
+        1e-6,
         root_paths=root_paths
     )
     model.load_state_dict(torch.load(file_path))

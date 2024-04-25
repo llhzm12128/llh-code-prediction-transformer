@@ -61,7 +61,7 @@ def eval(model_fp, dps, ids,save_fp, output_dir,embedding_size = 300, n_layers =
         collate_fn = lambda b: ds.collate(b, setup.vocab.pad_idx)
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
     m = m.to(device)
     m.eval()

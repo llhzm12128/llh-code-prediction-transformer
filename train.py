@@ -3,7 +3,7 @@ from trainer import Trainer, TrainingArgs
 from model import TransformerModel
 import models.trav_trans.dataset
 from torch.nn import CrossEntropyLoss
-from torch.optim import AdamW
+from torch.optim import AdamW,Adam
 
 #python train.py --batch_size 4 --num_epoch 12 --learning_rate 5e-5 --dps tmp/trav_trans/dps_train.txt --ids tmp/trav_trans/ids_train.txt --suffix trav_trans
 
@@ -29,14 +29,14 @@ def main():
         300,
         1000,
         6,
-        1e-05
+        1e-06
     )
 
     training_args = TrainingArgs(
         batch_size = args.batch_size,
         num_epoch = args.num_epoch,
         output_dir = args.output,
-        optimizer = AdamW(model.parameters(), lr=args.learning_rate),
+        optimizer = Adam(model.parameters(), lr=args.learning_rate),
         save_model_on_epoch = args.save_on_epoch,
         suffix = args.suffix
     )

@@ -31,6 +31,7 @@ def convert(ast):
         if "value" in node:
             child = [i + inc + 1]
             if "children" in node:
+                assert(len(node["children"])==1)
                 child += [n + increase_by[n] for n in node["children"]]
             new_dp.append({"type": node["type"], "children": child})
             new_dp.append({"value": node["value"]})

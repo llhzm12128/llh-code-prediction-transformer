@@ -1,4 +1,6 @@
 import argparse
+import sys
+sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
 import model
 import torch
 import pickle
@@ -59,7 +61,7 @@ def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
         collate_fn = lambda b: ds.collate(b, setup.vocab.pad_idx)
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     print(device)
     m = m.to(device)
     m.eval()
@@ -103,8 +105,8 @@ def eval(model_fp, dps, ids, output_fp, embedding_size = 300, n_layers = 6):
             with torch.no_grad():
                 x = batch["input_seq"][0]
                 y = batch["target_seq"][0]
-                paths = batch["root_paths"]
-                leaf_type = batch["leaf_type"]
+                paths = batch["paths"]
+                leaf_type = batch["leaf_type"] 
                 
                 paths = paths.to(device)
                 x = x.to(device)

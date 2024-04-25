@@ -73,6 +73,50 @@ def get_dfs(ast, only_leaf=False):
                 dp.append(node["type"])
     return dp
 
+#后序遍历AST
+def postorder_traversal(ast):
+    dp = []
+    def traverse(node):
+        if 'children' in node:
+            for child_index in node['children']:
+                traverse(ast[child_index])
+        if 'value' in node:
+            dp.append(node['value'])
+        if 'type' in node:
+            dp.append(node['type'])
+
+    traverse(ast[0])
+    return dp
+
+#分解AST遍历序列
+def split_sequence(sequence, max_len):
+    half_len = int(max_len / 2)
+    if len(sequence) <= max_len:
+        return [[sequence, 0]]
+    aug_asts = [[sequence[:max_len], 0]]
+    i = half_len
+    while i < len(sequence) - max_len:
+        aug_asts.append([sequence[i : i + max_len], half_len])
+        i += half_len
+    idx = max_len - (len(sequence) - (i + half_len))
+    aug_asts.append([sequence[-max_len:], idx])
+    return aug_asts
+
+#分解后序遍历的type和index序列
+def split_type_and_index_sequence(type,index,max_len):
+    assert(len(type) == len(index))
+    half_len = int(max_len / 2)
+    if len(type) <= max_len:
+        return [[type,index]]
+    aug_asts = [[type[:max_len], index[:max_len]]]
+    i = half_len
+    while i < len(type) - max_len:
+        aug_asts.append([type[i : i + max_len], index[i : i + max_len]])
+        i += half_len
+    idx = max_len - (len(type) - (i + half_len))
+    aug_asts.append([type[-max_len:], index[-max_len:]])
+    return aug_asts
+
 def separate_dps(ast, max_len):
     """
     Handles training / evaluation on long ASTs by splitting
