@@ -6,4 +6,13 @@
 
 调试path_trans的evaluate脚本，为什么取索引为0的元素？x = batch["input_seq"][0] y = batch["target_seq"][0]
 调试long_path_trans的generate_data脚本，看是否能获取正确的dp
-修改path_trans和long_path_trans的evaluate脚本，使能够在终端输出结果
+
+
+
+rq8_model.py  210行生成位置编码position_id，这种方式的位置编码全部都是一样的，
+所以如果希望将层数作为位置编码，需要自己在模型执行时传入对应的位置编码，所以需要像
+dps和ids一样，再生成一个位置编码数据集，该数据集和dps和ids的每个数据一一对应
+
+ rq8的训练和评估脚本在载入模型的时候loss_function的参数问题？
+ rq8_model.py的307行 和rq8_train.py的24行 CrossEntropyLoss(ignore_index=-1),ignore_index=-1？
+ ignore_index应该是pad_token？

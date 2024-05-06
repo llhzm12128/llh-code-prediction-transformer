@@ -272,7 +272,7 @@ with open("data\\python100k_train.json","r") as f1:
 
 
 
-""" #后序遍历AST，获取value节点的type，同时记录后序序列中value节点和内部节点的index
+#后序遍历AST，获取value节点的type，同时记录后序序列中value节点和内部节点的index
 post_index = [] #记录后序序列中value节点和内部节点的index
 def postorder_traversal(ast):
     dp = []
@@ -313,13 +313,23 @@ ast = [{'type': 'Module', 'children': [1, 4, 8, 12, 16]},
 
 dp = postorder_traversal(ast)
 print(dp)
-print(post_index) """
+print(post_index)
 
 
-#测试post_trav_trans的dps和ids文件是否相同
+""" #测试post_trav_trans的dps和ids文件是否相同
 with open("tmp\\post_trav_trans\dps_train.txt", "r") as fdp, open("tmp\\post_trav_trans\ids_train.txt", "r") as fid:
     lines_dp = fdp.readlines()
     lines_id = fid.readlines()
     print(len(lines_dp))
-    print(len(lines_id))
+    print(len(lines_id)) """
+
+import torch
+ 
+""" x = torch.zeros((5, 2, 3, 4))
+print(x.size(-1))
+print(x) """
+""" x = torch.tensor([[1], [2], [3]])
+y=torch.tensor([[2,2],[3,3],[5,5]])
+x =x.expand_as(y)
+print(x) """
 

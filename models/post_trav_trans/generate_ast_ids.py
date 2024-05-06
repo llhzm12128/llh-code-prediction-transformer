@@ -38,7 +38,7 @@ def postorder_type_and_index(ast):
         if 'type' in node:
             dp.append(node['type'])
             post_index.append(1) #1表示type节点
-    traverse(ast[0],0)
+    traverse(ast[0])
     return dp, post_index
 
 
@@ -59,19 +59,57 @@ def get_value_ids(split_type, split_id):
         if flag == 0:
             if split_type[i] == "attr":
                 ids["attr_ids"].append(
-                    i + 1
-                )  # + 1 since i is the type, and we want the value
+                    i 
+                )  
             elif split_type[i] == "Num":
-                ids["num_ids"].append(i + 1)
+                ids["num_ids"].append(i)
             elif split_type[i] in {"NameLoad", "NameStore"}:
-                ids["name_ids"].append(i + 1)
+                ids["name_ids"].append(i)
             elif split_type[i] == "NameParam":
-                ids["param_ids"].append(i + 1)
+                ids["param_ids"].append(i)
             # RQ3/RQ4 additional metrics
             elif split_type[i] == "Str":
-                ids["string_ids"].append(i + 1)
-                
+                ids["string_ids"].append(i)        
     return ids
+
+def get_valueType_ids(split_type, split_id):
+    ids = {"type_attr_ids": [], "type_num_ids": [], "type_name_ids": [], "type_param_ids": [], "type_string_ids": []}
+    for i, flag in enumerate(split_id):
+        stack = []
+        if flag == 0 and i+1<len(split_type):
+            for index in range(i+1,len(split_type)):
+                if(split_id[index] == 0):
+                    stack.append(0)
+                elif(split_id[index] == 1 and len(stack)!=0):
+                    stack.pop()
+                elif split_type[i] =="attr" and split_type[index] == "attr" and split_id[index] == 1 and len(stack) == 0:
+                    ids["type_attr_ids"].append(
+                        index 
+                    )  
+                elif split_type[i] == "Num" and split_type[index] == "Num" and split_id[index] == 1:
+                    ids["type_num_ids"].append(index)
+                elif split_type[i] in {"NameLoad", "NameStore"}  and split_type[index] in {"NameLoad", "NameStore"} and split_id[index] == 1:
+                    ids["type_name_ids"].append(index)
+                elif split_type[i] == "NameParam" and split_type[index] == "NameParam" and split_id[index] == 1:
+                    ids["type_param_ids"].append(index)
+                # RQ3/RQ4 additional metrics
+                elif split_type[i] == "Str"  and split_type[index] == "Str" and split_id[index] == 1:
+                    ids["type_string_ids"].append(index)  
+                break      
+    return ids
+
+
+""" def get_value_ids(split_type, split_id):
+    ids = {"attr_type_ids": [], "num_type_ids": [], "name_type_ids": [], "param_type_ids": [], "string_type_ids": []}
+    stack = []
+    for i, flag in enumerate(split_id):
+        if flag == 0:
+            stack.append(i)
+        elif len(stack)!=0 and split_type[i] == split_type[stack.pop()]:
+            value_type = split_type[stack.pop()]
+
+                  
+    return ids """
 
 
 def get_type_ids(split_type, split_id):
@@ -114,6 +152,7 @@ def get_type_ids(split_type, split_id):
                 ids["tuple_ids"].append(i)
             
     return ids
+
 
 
 """ def external(file_path, suffix, n_ctx):
@@ -169,7 +208,7 @@ def main():
     parser.add_argument(
         "id_type",
         choices=["leaf", "value", "type", "all"],
-        default="leaf",
+        default="all",
         help="Which ids to generate. Default = leaf",
     )
 
@@ -181,7 +220,6 @@ def main():
     logging.info("Loading dps from: {}".format(args.ast_fp))
     with open(args.ast_fp, "r") as f, open(args.out_fp, "w") as fout:
         for line in file_tqdm(f):
-            ast = json.loads(line.strip())
             ast = json.loads(line.strip())
             type, index = postorder_type_and_index(ast)
             #1.按照generate_data相同的方式对type数组和index数组进行分割
@@ -199,6 +237,8 @@ def main():
                     #2.3获取要计算的type_ids；和2.2方法类似
                     if args.id_type in {"type", "all"}:
                         ids.update(get_type_ids(split_type,split_id))
+                    #2.4获取要计算的valueType_ids(即value节点对应的type节点的id) 
+                    ids.update(get_valueType_ids(split_type,split_id))
                     #保存ids
                     json.dump(ids, fp=fout) 
                     fout.write("\n")

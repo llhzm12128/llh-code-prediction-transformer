@@ -200,7 +200,7 @@ class GPT2Model(nn.Module):
         )
         self.h = nn.ModuleList([copy.deepcopy(block) for _ in range(n_layer)])
         self.ln_f = LayerNorm(n_embd, std_eps=layer_norm_epsilon)
-
+    #训练和评估脚本中都未指定position_ids和past，所以都是执行None分支
     def forward(self, input_ids, position_ids=None, paths=None, past=None):
         if past is None:
             past_length = 0
@@ -208,8 +208,11 @@ class GPT2Model(nn.Module):
         else:
             past_length = past[0][0].size(-2)
         if position_ids is None:
+            #position ID 的范围是[0,len(input_ids))
             position_ids = torch.arange(past_length, input_ids.size(-1) + past_length, dtype=torch.long,
                                         device=input_ids.device)
+            #unsqueeze(0):给tesor在第一维加一维
+            #expand_as() :把position_ids扩展为和input_ids相同的size
             position_ids = position_ids.unsqueeze(0).expand_as(input_ids)
 
         input_shape = input_ids.size()
@@ -221,6 +224,7 @@ class GPT2Model(nn.Module):
         path_embeds = self.path_lstm(paths) if paths is not None else 0
         hidden_states = inputs_embeds + position_embeds + path_embeds
         presents = []
+        #past = None
         for block, layer_past in zip(self.h, past):
             hidden_states, present = block(hidden_states, layer_past)
             presents.append(present)
@@ -280,6 +284,7 @@ class TransformerModel(nn.Module):
     ):
         hidden_states, presents = self.transformer(x, paths=paths, position_ids=position_ids, past=past)
         y_pred = self.lm_head(hidden_states)
+        #presents只有在评估时会返回，似乎presents没有作用
         if not return_loss:
             return y_pred, presents
 
@@ -294,7 +299,7 @@ class TransformerModel(nn.Module):
             ids += [i * max_len + j for j in range(ext_i, max_len)]
         # Only apply loss function on previously collected ids
         loss = self.loss_fn(y_pred.view(-1, y_pred.size(-1))[ids], y.view(-1)[ids])
-        return loss
+        return loss 
 
 def from_file(file_path, vocab_size, pad_token, embedding_size = 300, n_layers = 6):
     model = TransformerModel(
