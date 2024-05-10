@@ -1,11 +1,14 @@
+import json
 import argparse
-import rq8_model
+import sys
+sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
+import model_with_position
 import torch
 import pickle
 import os
 from tqdm import tqdm
 import numpy as np
-from models.trav_trans import dataset
+from models.trav_trans_with_positionEncoding.trav_with_position_dataset import Setup
 
 def generate_test(model, context, device, depth=2, top_k=10):
     model.eval()
@@ -17,13 +20,15 @@ def generate_test(model, context, device, depth=2, top_k=10):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate GPT2 Model")
-    parser.add_argument("--model", default="rq1/model-final.pt", help="Specify the model file")
-    parser.add_argument("--dps", default="output/test_dps.txt", help="Specify the data file (dps) on which the model should be tested on")
-    parser.add_argument("--ids", default="output/test_ids.txt", help="Specify the data file (ids) on which the model should be tested on")
-
+    parser.add_argument("--model", default="output\\trav_trans_with_positionEncoding\\trav_trans_with_positionEncoding-model-10.pt", help="Specify the model file")
+    parser.add_argument("--dps", default="tmp\\trav_trans\\dps_eval.txt", help="Specify the data file (dps) on which the model should be tested on")
+    parser.add_argument("--ids", default="tmp\\trav_trans\\ids_eval.txt", help="Specify the data file (ids) on which the model should be tested on")
+    parser.add_argument("--levels", default="tmp\\trav_trans_with_positionEncoding\\levels_eval.txt")
+    parser.add_argument("--output", default="output\\trav_trans_with_positionEncoding") #中间文件保存目录
+    parser.add_argument("--save", default="output\trav_trans_with_positionEncoding\value_scores.json", help="Record evaluate results")
     args = parser.parse_args()
 
-    eval(args.model, args.dps, args.ids)
+    eval(args.model, args.dps, args.ids, args.levels, args.output, args.save)
 
 def mean_reciprocal_rank(labels, predictions, unk_idx):
     scores = []
@@ -42,13 +47,13 @@ def mean_reciprocal_rank(labels, predictions, unk_idx):
     else:
         return 0
 
-def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
+def eval(model_fp, dps, ids, levels, output_fp, save_fp, embedding_size = 300, n_layers = 6):
     
-    setup = dataset.Setup("output", dps, ids, mode="eval")
+    setup = Setup( output_fp, dps, ids, levels, mode="eval") 
     ds = setup.dataset
     vocab = setup.vocab
     unk_idx = vocab.unk_idx
-    m = rq8_model.from_file(model_fp, len(vocab), vocab.pad_idx, embedding_size, n_layers)
+    m = model_with_position.from_file(model_fp, len(vocab), vocab.pad_idx, embedding_size, n_layers)
 
     dataloader = torch.utils.data.DataLoader(
         ds,
@@ -85,11 +90,13 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
     for i, batch in tqdm(enumerate(dataloader)):
         if True:
             with torch.no_grad():
-                x = batch["input_seq"]
+                x = batch["input_seq"][0]
                 y = batch["target_seq"][0]
+                levels = batch["level"][0]
 
                 x = x.to(device)
-                output = m(x, None)[0][0]
+                levels = levels.to(device)
+                output = m(x = x, y = None, position_ids= levels)[0]
                 
                 ### Evaluate value scores, type + value ###
 
@@ -114,12 +121,14 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
                         value_scores[key]["t_scores"].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
 
                 for key in type_scores:
-                    type_ids = [a - 1 for a in batch["ids"][key] if a > 0]
+                    type_ids = [a for a in batch["ids"][key] if a >= 0]
 
                     if len(type_ids) > 0:
                         type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
                         type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
-        
+                if i % 100 == 0:
+                    print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))
+
     for k, s in value_scores.items():
         print("{}".format(k))
         if len(value_scores[k]["t_scores"]) > 0:
@@ -130,13 +139,23 @@ def eval(model_fp, dps, ids, embedding_size = 300, n_layers = 6):
             print("\tValue Prediction: {}".format(sum(value_scores[k]["v_scores"])/len(value_scores[k]["v_scores"])))
         else:
             print("\tValuePrediction: None")
-
+        print("\tAverage Prediction: {}".format(
+            ((sum(value_scores[k]["v_scores"])/len(value_scores[k]["v_scores"]))+
+            (sum(value_scores[k]["t_scores"])/len(value_scores[k]["t_scores"])))/2
+            ))
     for k, s in type_scores.items():
         print("{}".format(k))
         if len(type_scores[k]) > 0:
             print("\tType Prediction: {}".format(sum(type_scores[k])/len(type_scores[k])))
         else:
             print("\tType Prediction: None")
+
+    scores = {"value_scores": value_scores, "type_scores": type_scores}
+    if(os.path.exists(save_fp)):
+        os.remove(save_fp)
+    with open(save_fp, "w") as file:
+        
+        json.dump(scores, file)
 
     return {"value_scores": value_scores, "type_scores": type_scores}
 

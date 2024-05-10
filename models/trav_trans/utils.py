@@ -160,4 +160,17 @@ def tokenize(s):
     return list(filter(None, tokenized))[:5]
 
 
+#和项目根目录下utils文件中的同名方法相同
+def split_sequence(sequence, max_len):
+    half_len = int(max_len / 2)
+    if len(sequence) <= max_len:
+        return [[sequence, 0]]
+    aug_asts = [[sequence[:max_len], 0]]
+    i = half_len
+    while i < len(sequence) - max_len:
+        aug_asts.append([sequence[i : i + max_len], half_len])
+        i += half_len
+    idx = max_len - (len(sequence) - (i + half_len))
+    aug_asts.append([sequence[-max_len:], idx])
+    return aug_asts
 

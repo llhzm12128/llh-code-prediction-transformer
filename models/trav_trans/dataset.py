@@ -13,7 +13,7 @@ class Setup(BaseSetup):
     def _create_vocab(self):
         return Vocab(self.filepaths["vocab"])
 
-    def _create_dataset(self, fp, ids_fp):
+    def _create_dataset(self, fp, ids_fp, level_fp):
         return Dataset(fp, ids_fp)
 
 

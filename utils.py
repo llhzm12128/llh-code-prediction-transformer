@@ -89,7 +89,7 @@ def postorder_traversal(ast):
     return dp
 
 #分解AST遍历序列
-def split_sequence(sequence, max_len):
+def split_sequence(sequence, max_len):  
     half_len = int(max_len / 2)
     if len(sequence) <= max_len:
         return [[sequence, 0]]

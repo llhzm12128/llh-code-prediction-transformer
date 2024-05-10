@@ -23,7 +23,7 @@ PAD = "<pad_token>"
 
 class BaseSetup(object):
     def __init__(
-        self, base_dir, fp, ids_fp, max_vocab=100000, mode="train"
+        self, base_dir, fp, ids_fp, level_fp=None, max_vocab=100000, mode="train"
     ):
         super().__init__()
         if mode not in {"train", "test", "eval"}:
@@ -65,7 +65,7 @@ class BaseSetup(object):
             )
 
         # return dataset
-        self.dataset = self._create_dataset(self.filepaths["conv"], ids_fp)
+        self.dataset = self._create_dataset(self.filepaths["conv"], ids_fp, level_fp)
         logging.info("Loaded dataset from {}".format(self.filepaths["conv"]))
 
     def return_data(self):
@@ -80,7 +80,7 @@ class BaseSetup(object):
     def _create_vocab(self):
         raise NotImplementedError("method must be implemented by a subclass.")
 
-    def _create_dataset(self, fp, ids_fp):
+    def _create_dataset(self, fp, ids_fp, level_fp): 
         raise NotImplementedError("method must be implemented by a subclass.")
 
 
@@ -110,7 +110,7 @@ class BaseVocab(object):
         raise NotImplementedError("method must be implemented by a subclass.")
 
 
-#travTrans版
+#travTrans 和 post_trav_trans 版
 class TravBaseDataset(torch.utils.data.Dataset):
     def __init__(self, fp, ids_fp):
         super().__init__()
@@ -135,7 +135,38 @@ class TravBaseDataset(torch.utils.data.Dataset):
             ids_line = f.readline().strip()
         return (json.loads(dp_line), json.loads(ids_line))
     
-    
+#travTrans_with_positionEncoding 和 post_trav_trans_with_positionEncoding版
+class TravTransPositionEncodingBaseDataset(torch.utils.data.Dataset):
+    def __init__(self, fp, ids_fp, level_fp):
+        super().__init__()
+        self.fp = fp
+        self.ids_fp = ids_fp
+        self.level_fp = level_fp
+        self._line_pos_dp = list(utils.line_positions(fp))
+        self._line_pos_ids = list(utils.line_positions(ids_fp))
+        self._line_pos_level = list(utils.line_positions(level_fp))
+        assert (len(self._line_pos_dp) == len(self._line_pos_ids))
+        assert (len(self._line_pos_dp) == len(self._line_pos_level))
+
+    def __len__(self):
+        return len(self._line_pos_dp)
+
+    def __getitem__(self, idx):
+        line_pos = self._line_pos_dp[idx]
+        with open(self.fp) as f:
+            f.seek(line_pos)
+            dp_line = f.readline().strip()
+
+        line_pos = self._line_pos_ids[idx]
+        with open(self.ids_fp) as f:
+            f.seek(line_pos)
+            ids_line = f.readline().strip()
+
+        line_pos = self._line_pos_level[idx]
+        with open(self.level_fp) as f:
+            f.seek(line_pos)
+            level_line = f.readline().strip()
+        return (json.loads(dp_line), json.loads(ids_line), json.loads(level_line))
 
 
     @staticmethod
@@ -144,7 +175,7 @@ class TravBaseDataset(torch.utils.data.Dataset):
  
 
 
-#pathTrans版
+#pathTrans 和 long_path_trans版
 class PathBaseDataset(torch.utils.data.Dataset):
     def __init__(self, fp, ids_fp):
         super().__init__()

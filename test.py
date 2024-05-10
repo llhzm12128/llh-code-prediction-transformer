@@ -272,7 +272,7 @@ with open("data\\python100k_train.json","r") as f1:
 
 
 
-#后序遍历AST，获取value节点的type，同时记录后序序列中value节点和内部节点的index
+""" #后序遍历AST，获取value节点的type，同时记录后序序列中value节点和内部节点的index
 post_index = [] #记录后序序列中value节点和内部节点的index
 def postorder_traversal(ast):
     dp = []
@@ -313,7 +313,7 @@ ast = [{'type': 'Module', 'children': [1, 4, 8, 12, 16]},
 
 dp = postorder_traversal(ast)
 print(dp)
-print(post_index)
+print(post_index) """
 
 
 """ #测试post_trav_trans的dps和ids文件是否相同
@@ -333,3 +333,115 @@ y=torch.tensor([[2,2],[3,3],[5,5]])
 x =x.expand_as(y)
 print(x) """
 
+""" #先序遍历ast，获取node层数
+def preorder_traversal(ast, level=1):
+    result = {"level":[]}
+
+    def traverse(node, level):
+       
+        result["level"].append(level) 
+        
+        if 'children' in node:
+            for child in node['children']:
+                traverse(ast[child], level + 1)
+
+    traverse(ast[0], level)
+    return result
+
+ast = [{'type': 'Module', 'children': [1, 4, 8, 12, 16]}, 
+       {'type': 'Expr', 'children': [2]}, 
+       {'type': 'Str', 'children': [3]}, 
+       {'value': ' Provides ``mapping`` of url paths to request handlers.\n'}, 
+       {'type': 'ImportFrom', 'children': [5, 6]}, 
+       {'value': 'bootstrap'}, 
+       {'type': 'alias', 'children': [7]},
+       {'value': 'Bootstrap'}, 
+       {'type': 'ImportFrom', 'children': [9, 10]}, 
+       {'value': 'fund'}, 
+       {'type': 'alias', 'children': [11]}, 
+       {'value': 'InstantPaymentNotificationHandler'}, 
+       {'type': 'ImportFrom', 'children': [13, 14]}, 
+       {'value': 'fund'}, 
+       {'type': 'alias', 'children': [15]}, 
+       {'value': 'ThankYouHandler'}, 
+       {'type': 'ImportFrom', 'children': [17, 18]}, 
+       {'value': 'view'}, 
+       {'type': 'alias', 'children': [19]}, 
+       {'value': '*'}, 
+       ]
+
+result = preorder_traversal(ast)
+print(result)
+for node, level in result:
+    
+    print('Node:', node, 'Level:', level) """
+
+import json
+def test_length(file1, file2):
+    count1 = 0
+    count2 = 0
+    len1_list = []
+    len2_list = []
+    with open(file1,"r") as f1:
+        for line in f1:
+            line = line.strip()
+            line = json.loads(line)
+            #print(line)
+            len1_list.append(len(line[0]))
+            count1 += 1
+    with open(file2,"r") as f2:
+        for line in f2:
+            line = line.strip()
+            line = json.loads(line)
+            len2_list.append(len(line))
+            count2 += 1
+    print(count1)
+    print(count2)
+    for i in range(0,len(len1_list)):
+        assert(len1_list[i] == len2_list[i])
+    assert(count1 == count2)
+
+
+def test_get_post_with_position(ast):
+    levels = []
+    
+    def traverse(node, level=1):
+        if 'children' in node:
+            for child_index in node['children']:
+                traverse(ast[child_index], level + 1)  # 递归时层级加1
+        if 'value' in node:
+            levels.append(level)  # 将节点值和层级一起添加到结果中
+        if 'type' in node:
+            levels.append(level)   # 将节点类型和层级一起添加到结果中
+
+    traverse(ast[0])  # 从根节点开始遍历
+    return levels
+if __name__ == "__main__":
+    file1 = "tmp\\post_trav_trans\\dps_eval.txt"
+    file2 = "tmp\\post_trav_trans_with_positionEncoding\\levels_eval.txt"
+    test_length(file1, file2)
+
+    """ ast = [{'type': 'Module', 'children': [1, 4, 8, 12, 16]}, 
+       {'type': 'Expr', 'children': [2]}, 
+       {'type': 'Str', 'children': [3]}, 
+       {'value': ' Provides ``mapping`` of url paths to request handlers.\n'}, 
+       {'type': 'ImportFrom', 'children': [5, 6]}, 
+       {'value': 'bootstrap'}, 
+       {'type': 'alias', 'children': [7]},
+       {'value': 'Bootstrap'}, 
+       {'type': 'ImportFrom', 'children': [9, 10]}, 
+       {'value': 'fund'}, 
+       {'type': 'alias', 'children': [11]}, 
+       {'value': 'InstantPaymentNotificationHandler'}, 
+       {'type': 'ImportFrom', 'children': [13, 14]}, 
+       {'value': 'fund'}, 
+       {'type': 'alias', 'children': [15]}, 
+       {'value': 'ThankYouHandler'}, 
+       {'type': 'ImportFrom', 'children': [17, 18]}, 
+       {'value': 'view'}, 
+       {'type': 'alias', 'children': [19]}, 
+       {'value': '*'}, 
+       ]
+    result = []
+    result = test_get_post_with_position(ast)
+    print(result) """

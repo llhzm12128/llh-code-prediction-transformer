@@ -1,4 +1,4 @@
- 
+
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
@@ -7,15 +7,15 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-from dataset import TravBaseDataset, BaseSetup, BaseVocab
+from dataset import  BaseSetup, BaseVocab, TravTransPositionEncodingBaseDataset
 
 
 class Setup(BaseSetup):
     def _create_vocab(self):
         return Vocab(self.filepaths["vocab"])
 
-    def _create_dataset(self, fp, ids_fp, level_fp = None):
-        return Dataset(fp, ids_fp)
+    def _create_dataset(self, fp, ids_fp, level_fp):
+        return Dataset(fp, ids_fp, level_fp)
 
 
 class Vocab(BaseVocab):
@@ -28,20 +28,23 @@ class Vocab(BaseVocab):
         return [dp_conv, ext]
 
 
-class Dataset(TravBaseDataset):
+class Dataset(TravTransPositionEncodingBaseDataset):
     @staticmethod
     def collate(seqs, pad_idx):
         max_len = max(len(seq[0][0]) for seq in seqs)
         max_len = max(max_len, 2)
         input_seqs = []
-        target_seqs = []
+        target_seqs = [] 
         extended = []
+        level_seqs = []
         ids = {name: [] for name in seqs[0][1].keys()}
 
         
-        for i, ((seq, ext), ids_lst) in enumerate(seqs):
+        for i, ((seq, ext), ids_lst, level_list) in enumerate(seqs):
             padding = [pad_idx] * (max_len - len(seq))
+            level_padding = [999] * (max_len - len(seq))
             input_seqs.append(seq[:-1] + padding)
+            level_seqs.append(level_list[:-1] + level_padding)
             target_seqs.append(seq[1:] + padding)
             extended.append(ext)
             for name, lst in ids_lst.items():
@@ -52,28 +55,6 @@ class Dataset(TravBaseDataset):
             "target_seq": torch.tensor(target_seqs),
             "extended": torch.tensor(extended),
             "ids": ids,
+            "level":torch.tensor(level_seqs)
         }
         
-""" class Dataset(BaseDataset):
-    @staticmethod
-    def collate(seqs, pad_idx):
-        max_len = max(len(seq[0]) for seq in seqs)
-        max_len = max(max_len, 2)
-        input_seqs = []
-        target_seqs = []
-        extended = []
-        #ids = {name: [] for name in seqs[0][1].keys()}
-
-        for i, (seq, ext) in enumerate(seqs):
-            padding = [pad_idx] * (max_len - len(seq))
-            input_seqs.append(seq[:-1] + padding)
-            target_seqs.append(seq[1:] + padding)
-            extended.append(ext)
-            
-
-        return {
-            "input_seq": torch.tensor(input_seqs),
-            "target_seq": torch.tensor(target_seqs),
-            "extended": torch.tensor(extended),
-            #"ids": ids,
-        } """
