@@ -25,7 +25,7 @@ def main():
     parser.add_argument("--ids", default="tmp\\trav_trans\\ids_eval.txt", help="Specify the data file (ids) on which the model should be tested on")
     parser.add_argument("--levels", default="tmp\\trav_trans_with_positionEncoding\\levels_eval.txt")
     parser.add_argument("--output", default="output\\trav_trans_with_positionEncoding") #中间文件保存目录
-    parser.add_argument("--save", default="output\trav_trans_with_positionEncoding\value_scores.json", help="Record evaluate results")
+    parser.add_argument("--save", default="output\\trav_trans_with_positionEncoding\\value_scores.json", help="Record evaluate results")
     args = parser.parse_args()
 
     eval(args.model, args.dps, args.ids, args.levels, args.output, args.save)
@@ -62,6 +62,10 @@ def eval(model_fp, dps, ids, levels, output_fp, save_fp, embedding_size = 300, n
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        print('cuda')
+    else:
+        print('cpu')
     m = m.to(device)
     m.eval()
 
@@ -84,7 +88,19 @@ def eval(model_fp, dps, ids, levels, output_fp, save_fp, embedding_size = 300, n
         "return_ids": [],
         "list_ids": [],
         "dict_ids": [],
-        "raise_ids": []        
+        "raise_ids": [],
+        "attribute_ids": [],
+        "cond_ids": [],
+        "comp_ids": [],
+        "tuple_ids": []
+    }
+    
+    all_scores={
+        "leaf_ids":[],
+        "internal_ids":[]
+    }
+    avg = {
+        "avg":[]
     }
 
     for i, batch in tqdm(enumerate(dataloader)):
@@ -126,6 +142,22 @@ def eval(model_fp, dps, ids, levels, output_fp, save_fp, embedding_size = 300, n
                     if len(type_ids) > 0:
                         type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
                         type_scores[key].append(mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))
+                
+                for key in all_scores:
+                    if key == "leaf_ids":
+                        node_ids = [a for a in batch["ids"][key] if a >= 0]
+                        if len(node_ids) > 0:       
+                            type_ids = [a - 1 for a in batch["ids"][key] if a > 0 and a < len(output)]
+                            node_predictions = [torch.topk(o, 10)[1].tolist() for o in output[node_ids]]
+                            type_predictions = [torch.topk(o, 10)[1].tolist() for o in output[type_ids]]
+                            all_scores[key].append((mean_reciprocal_rank(y[node_ids], node_predictions, unk_idx)+
+                                                    mean_reciprocal_rank(y[type_ids], type_predictions, unk_idx))/2)
+                    else:
+                        node_ids = [a for a in batch["ids"][key] if a >= 0]
+                        if len(node_ids) > 0:
+                            node_predictions = [torch.topk(o, 10)[1].tolist() for o in output[node_ids]]
+                            all_scores[key].append(mean_reciprocal_rank(y[node_ids], node_predictions, unk_idx))
+                
                 if i % 100 == 0:
                     print("Batch {}, It. {}/{}".format(i, i, ds.__len__() / 1))
 
@@ -149,15 +181,38 @@ def eval(model_fp, dps, ids, levels, output_fp, save_fp, embedding_size = 300, n
             print("\tType Prediction: {}".format(sum(type_scores[k])/len(type_scores[k])))
         else:
             print("\tType Prediction: None")
-
-    scores = {"value_scores": value_scores, "type_scores": type_scores}
+            
+    for k, s in all_scores.items():
+        print("{}".format(k))
+        if len(all_scores[k]) > 0:
+            print("\tType Prediction: {}".format(sum(all_scores[k])/len(all_scores[k])))
+        else:
+            print("\tType Prediction: None")
+            
+    acc_sum=0
+    ids_count  =0
+    for k, s in all_scores.items():
+        print("avg:")
+        if len(all_scores[k]) > 0:
+            acc_sum+=sum(all_scores[k])
+            ids_count+=len(all_scores[k])  
+        else:
+            print("\tType Prediction: None")
+    if ids_count > 0:
+        avg["avg"] = acc_sum / ids_count
+        print("\tAvg Prediction: {}".format(avg["avg"]))
+    else:
+        avg["avg"] = None
+        print("\tAvg Prediction: None")
+        
+    scores = {"value_scores": value_scores, "type_scores": type_scores,"all_scores":all_scores,"avg":avg}
     if(os.path.exists(save_fp)):
         os.remove(save_fp)
     with open(save_fp, "w") as file:
         
         json.dump(scores, file)
 
-    return {"value_scores": value_scores, "type_scores": type_scores}
+    return scores
 
 if __name__ == "__main__":
     main()

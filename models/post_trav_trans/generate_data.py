@@ -13,7 +13,7 @@ import os
 import sys
 import platform
 if(platform.system() == "Windows"):
-    sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
+    sys.path.append("D:\\projects\\llh-code-prediction-transformer")
 else:
     sys.path.append("/root/llh-code-prediction-transformer")
 

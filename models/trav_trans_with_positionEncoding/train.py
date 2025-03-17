@@ -2,11 +2,11 @@
 import sys
 import platform
 if(platform.system() == "Windows"):
-    sys.path.append("C:/Users/llh/Desktop/ISCAS/llh-code-prediction-transformer")
+    sys.path.append("D:\\projects\\llh-code-prediction-transformer")
 else:
     sys.path.append("/root/llh-code-prediction-transformer")
 import argparse
-from trainer import Trainer, TrainingArgs
+from trainer_with_position import Trainer, TrainingArgs
 from model_with_position import TransformerModel
 import models.trav_trans_with_positionEncoding.trav_with_position_dataset
 from torch.nn import CrossEntropyLoss

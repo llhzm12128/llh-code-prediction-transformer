@@ -36,7 +36,9 @@ class Trainer(object):
         
     #travsTrans版训练器
     def train(self):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # 指定使用 GPU 1
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
         print(device)
         self.model = self.model.to(device)
         losses = []

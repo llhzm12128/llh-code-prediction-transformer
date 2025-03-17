@@ -74,6 +74,8 @@ def eval(model_fp, dps, ids,save_fp, output_fp, embedding_size = 300, n_layers =
         "param_ids": {"v_scores": [], "t_scores": []},
         "string_ids": {"v_scores": [], "t_scores": []}
     }
+    
+    
 
     # Types (Predict type only)
     type_scores = {

@@ -200,7 +200,7 @@ class GPT2Model(nn.Module):
         )
         self.h = nn.ModuleList([copy.deepcopy(block) for _ in range(n_layer)])
         self.ln_f = LayerNorm(n_embd, std_eps=layer_norm_epsilon)
-    #训练和评估脚本中都未指定position_ids和past，所以都是执行None分支
+
     def forward(self, input_ids, position_ids=None, paths=None, past=None):
         if past is None:
             past_length = 0

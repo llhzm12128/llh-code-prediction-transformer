@@ -11,10 +11,10 @@ def main():
     parser = argparse.ArgumentParser(description="Train GPT2 Model")
     parser.add_argument("--batch_size", type=int, default=4, help="Specify batch size")
     parser.add_argument("--num_epoch", type=int, default=3, help="Specify number of epochs")
-    parser.add_argument("--learning_rate", type=float, default=5e-5, help="Specify AdamW learning rate")
+    parser.add_argument("--learning_rate", type=float, default=1e-3, help="Specify AdamW learning rate")
     parser.add_argument("--dps", default="tmp/trav_trans/dps_train.txt")
     parser.add_argument("--ids", default="tmp/ids_100k_train.txt")
-    parser.add_argument("--output", default="output/trav_trans")
+    parser.add_argument("--output", default="output/travtrans")
     parser.add_argument("--suffix", default="unnamed")
     parser.add_argument("--save_on_epoch", type=bool, default = False)
 

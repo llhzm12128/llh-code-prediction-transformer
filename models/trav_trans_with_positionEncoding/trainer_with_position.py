@@ -33,8 +33,7 @@ class Trainer(object):
         self.save_model_on_epoch = args.save_model_on_epoch
         self.model_name = args.model_name
         self.suffix = args.suffix
-        
-    #travsTrans版训练器
+
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(device)
